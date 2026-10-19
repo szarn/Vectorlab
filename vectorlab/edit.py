@@ -41,3 +41,13 @@ def edit(run: Path, layer: int, mode: str | None, strength: float | None, layer_
     }
     save_json(run / "edit.json", config)
     return config
+
+
+def edit_from_trial(run: Path, number: int) -> dict:
+    """Write ``edit.json`` from a search trial's config."""
+    trials = {t["number"]: t for t in load_json(run / "search.json")["trials"]}
+    if number not in trials:
+        raise UserError(f"no trial {number} in {run / 'search.json'}; trials run from 0 to {max(trials)}")
+    config = trials[number]["config"]
+    save_json(run / "edit.json", config)
+    return config

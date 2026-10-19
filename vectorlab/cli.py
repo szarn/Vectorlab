@@ -98,18 +98,48 @@ def cmd_analyze(args):
 
 
 def cmd_edit(args):
-    from vectorlab.edit import edit
+    from vectorlab.edit import edit, edit_from_trial
 
     require_run(args.run, "directions.safetensors")
+    if (args.layer is None) == (args.trial is None):
+        raise UserError("give exactly one of --layer or --trial")
+    if args.trial is not None:
+        require_run(args.run, "search.json")
+        print(json.dumps(edit_from_trial(args.run, args.trial)))
+        return
     print(json.dumps(edit(args.run, args.layer, args.mode, args.alpha, args.range, args.weights)))
+
+
+def cmd_search(args):
+    from vectorlab.evaluate import NEUTRAL
+    from vectorlab.judge import JUDGE_MODEL
+    from vectorlab.search import search
+
+    require_run(args.run, "directions.safetensors")
+    require_file(NEUTRAL, "create it with `python scripts/fetch_refusal.py`")
+    if "train_prompts" not in json.loads((args.run / "run.json").read_text()):
+        raise UserError(f"{args.run} predates search support; re-run `vectorlab extract`")
+    result = search(args.run, args.trials, args.prompts, args.batch_size, args.judge or JUDGE_MODEL, args.seed, args.kl_budget)
+    base = result["baseline"]
+    print(f"baseline  score {base['score']:.3f}  length {base['length']:.0f} tokens")
+    print("trial  layer  layers   strength   score      kl  length  objective  (Pareto front)")
+    for t in sorted((t for t in result["trials"] if t["pareto"]), key=lambda t: t["kl"]):
+        c = t["config"]
+        print(
+            f"{t['number']:5d}  {c['layer']:5d}  {c['layers'][0]:2d}-{c['layers'][-1]:<3d} {c['strength']:9.3g}"
+            f"  {t['score']:6.3f}  {t['kl']:6.3f}  {100 * t['length_change']:+5.0f}%  {t['objective']:9.3f}"
+        )
+    print(f"suggested: trial {result['suggested']} (highest objective with KL <= {args.kl_budget}); apply with `vectorlab edit {args.run} --trial {result['suggested']}`")
+    print(args.run / "search.json")
 
 
 def cmd_eval(args):
     from vectorlab.evaluate import NEUTRAL, evaluate
+    from vectorlab.judge import JUDGE_MODEL
 
     require_run(args.run, "directions.safetensors", "edit.json")
     require_file(NEUTRAL, "create it with `python scripts/fetch_refusal.py`")
-    result = evaluate(args.run, args.n, args.batch_size, args.judge)
+    result = evaluate(args.run, args.n, args.batch_size, args.judge or JUDGE_MODEL)
     print(f"{result['metric']:>10}  before {result['before']:.3f}  after {result['after']:.3f}  (n={result['n']})")
     print(f"{'kl':>10}  {result['kl']:.4f}")
 
@@ -135,18 +165,29 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("edit", parents=[common], help="choose the intervention to evaluate")
     p.add_argument("run", type=Path)
-    p.add_argument("--layer", type=int, required=True, help="layer whose direction to use")
+    p.add_argument("--layer", type=int, help="layer whose direction to use")
+    p.add_argument("--trial", type=int, help="use the config of this search trial instead")
     p.add_argument("--mode", choices=["ablate", "add"], help="defaults to the behavior's intervention")
     p.add_argument("--alpha", type=float, help="ablation scale (default 1.0) or addition coefficient")
     p.add_argument("--range", help="START:END layers to intervene on")
     p.add_argument("--weights", action="store_true", help="bake the edit into the weights")
     p.set_defaults(func=cmd_edit)
 
+    p = sub.add_parser("search", parents=[common], help="Optuna search over layer, strength, and layer range")
+    p.add_argument("run", type=Path)
+    p.add_argument("--trials", type=int, default=40)
+    p.add_argument("--prompts", type=int, default=32, help="train prompts scored per trial")
+    p.add_argument("--batch-size", type=int, default=32)
+    p.add_argument("--judge", help="judge model for judge metrics (default google/gemma-3-12b-it)")
+    p.add_argument("--seed", type=int, default=0)
+    p.add_argument("--kl-budget", type=float, default=0.2, help="KL limit when suggesting a trial")
+    p.set_defaults(func=cmd_search)
+
     p = sub.add_parser("eval", parents=[common], help="measure the edit's behavior metric and KL")
     p.add_argument("run", type=Path)
     p.add_argument("--n", type=int, help="evaluate only the first N held-out prompts")
     p.add_argument("--batch-size", type=int, default=16)
-    p.add_argument("--judge", default="Qwen/Qwen3-4B-Instruct-2507", help="judge model for judge metrics")
+    p.add_argument("--judge", help="judge model for judge metrics (default google/gemma-3-12b-it)")
     p.set_defaults(func=cmd_eval)
     return parser
 

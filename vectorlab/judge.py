@@ -9,7 +9,7 @@ from sklearn.metrics import cohen_kappa_score
 
 from vectorlab.metrics import next_logprobs
 
-JUDGE_MODEL = "Qwen/Qwen3-4B-Instruct-2507"
+JUDGE_MODEL = "google/gemma-3-12b-it"
 SCALE = (1, 2, 3, 4, 5)
 
 PROMPT = """You are grading an answer to a question against a rubric.

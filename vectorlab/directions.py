@@ -5,6 +5,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
+from vectorlab.capture import content_span, token_states
+
 
 def mean_diff(pos: torch.Tensor, neg: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
     """Per-layer unit direction from the negative class mean to the positive class mean.
@@ -75,3 +77,46 @@ def logit_lens(tok, adapter, directions: torch.Tensor, k: int = 12) -> list[dict
         }
         for i in range(len(logits))
     ]
+
+
+def lexical_separation(embeddings: dict[str, torch.Tensor]) -> dict:
+    """Held-out Cohen's d and probe accuracy of the mean-token-embedding baseline.
+
+    Args:
+        embeddings: ``train_pos``, ``train_neg``, ``test_pos`` and ``test_neg`` tensors of shape ``[1, n, hidden]``.
+    """
+    direction, _ = mean_diff(embeddings["train_pos"], embeddings["train_neg"])
+    projections = {name: project(e, direction) for name, e in embeddings.items()}
+    return {
+        "cohens_d": cohens_d(projections["test_pos"], projections["test_neg"]).item(),
+        "probe_acc": probe_accuracy(embeddings)[0],
+    }
+
+
+def midpoints(projections: dict[str, torch.Tensor]) -> torch.Tensor:
+    """Per-layer midpoint between the train class means along each layer's direction."""
+    return (projections["train_pos"].mean(0) + projections["train_neg"].mean(0)) / 2
+
+
+def token_projections(tok, adapter, examples: list[tuple[dict, str]], mode: str, directions: torch.Tensor, centers: torch.Tensor) -> list[dict]:
+    """Each token's projection onto every layer's direction, relative to that layer's class midpoint.
+
+    Positive values lean toward the positive class. Returns one dict per example with
+    ``label``, ``tokens``, ``special`` flags, the ``content`` span, and ``scores`` as
+    ``[layers][tokens]``.
+    """
+    special = set(tok.all_special_ids)
+    out = []
+    for record, label in examples:
+        ids, span, states = token_states(tok, adapter, record, mode)
+        scores = torch.einsum("ltd,ld->lt", states, directions) - centers.unsqueeze(-1)
+        out.append(
+            {
+                "label": label,
+                "tokens": [tok.decode([i]) for i in ids],
+                "special": [i in special for i in ids],
+                "content": list(content_span(mode, ids, span)),
+                "scores": scores.round(decimals=3).tolist(),
+            }
+        )
+    return out

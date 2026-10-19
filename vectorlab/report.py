@@ -8,14 +8,17 @@ import html
 import json
 import logging
 from pathlib import Path
+from statistics import mean
 
 import numpy as np
 from plotly.offline import get_plotlyjs
 
-from vectorlab.figures import DARK, LIGHT, histogram_figure, separation_figure, to_div
+from vectorlab.behavior import read_jsonl
+from vectorlab.figures import DARK, LIGHT, cosine_figure, histogram_figure, separation_figure, to_div, tradeoff_figure
 from vectorlab.store import load_json, load_tensors
 
 ASSETS = Path(__file__).parent / "assets"
+METRIC_LABELS = {"refusal": "refusal rate", "verbosity": "answer tokens", "judge": "judge score (1–5)"}
 
 log = logging.getLogger(__name__)
 
@@ -59,8 +62,76 @@ def _separation_table(separation):
         f"<tr><td>{i}</td><td>{d:.3f}</td><td>{a:.3f}</td></tr>"
         for i, (d, a) in enumerate(zip(separation["cohens_d"], separation["probe_acc"]))
     )
+    lexical = separation["lexical"]
+    rows += f"<tr><td>lexical baseline</td><td>{lexical['cohens_d']:.3f}</td><td>{lexical['probe_acc']:.3f}</td></tr>"
     head = "<tr><th>layer</th><th>Cohen's d</th><th>probe accuracy</th></tr>"
     return f'<details><summary>Table view</summary><div class="scroll"><table>{head}{rows}</table></div></details>'
+
+
+def _token_scale(examples, layer):
+    values = [
+        abs(e["scores"][layer][i])
+        for e in examples
+        for i in range(*e["content"])
+        if not e["special"][i]
+    ]
+    return float(np.percentile(values, 95)) or 1.0
+
+
+def _token_line(example, layer, scale):
+    start, end = example["content"]
+    spans = []
+    for i, (text, special) in enumerate(zip(example["tokens"], example["special"])):
+        shown = html.escape(text)
+        if special or not start <= i < end:
+            spans.append(f'<span class="tok muted">{shown}</span>')
+            continue
+        value = example["scores"][layer][i]
+        weight = min(1.0, abs(value) / scale)
+        side = "pos" if value > 0 else "neg"
+        spans.append(f'<span class="tok {side}" style="--w:{weight:.2f}" title="{value:+.2f}">{shown}</span>')
+    return f'<div class="tokens">{"".join(spans)}</div>'
+
+
+def _token_heatmap(examples, layer, labels):
+    scale = _token_scale(examples, layer)
+    legend = (
+        f'<div class="scale">{html.escape(labels[1])}<span class="bar"></span>{html.escape(labels[0])}'
+        f"<span>· layer {layer} · color saturates at ±{scale:.1f}</span></div>"
+    )
+    blocks = "".join(f"<h3>{html.escape(labels[0] if e['label'] == 'positive' else labels[1])} example</h3>{_token_line(e, layer, scale)}" for e in examples)
+    return legend + blocks
+
+
+def _mean_words(rows, key):
+    return mean(len(r[key].split()) for r in rows)
+
+
+def _before_after(rows, metric, k=6):
+    summary = (
+        f'<p class="facts">Mean {METRIC_LABELS[metric]}: {mean(r["before_score"] for r in rows):.3f} → '
+        f'{mean(r["after_score"] for r in rows):.3f} · mean answer length {_mean_words(rows, "before"):.0f} → {_mean_words(rows, "after"):.0f} words '
+        f"· showing {min(k, len(rows))} of {len(rows)} held-out prompts</p>"
+    )
+    pairs = "".join(
+        f'<div class="pair"><div class="q">{html.escape(r["prompt"])}</div><div class="cols">'
+        f'<div><h4>Before · {r["before_score"]:.2f}</h4><div class="gen">{html.escape(r["before"])}</div></div>'
+        f'<div><h4>After · {r["after_score"]:.2f}</h4><div class="gen">{html.escape(r["after"])}</div></div>'
+        "</div></div>"
+        for r in rows[:k]
+    )
+    return summary + pairs
+
+
+def _judge_table(judges):
+    head = "<tr><th>edit</th><th>judge</th><th>κ vs hand labels</th><th>before</th><th>after</th><th>change</th><th>n</th></tr>"
+    rows = "".join(
+        f"<tr><td>{html.escape(j['edit'])}</td><td>{html.escape(j['judge'])}</td>"
+        f"<td>{'–' if j['kappa'] is None else format(j['kappa'], '.2f')}</td><td>{j['before']:.2f}</td>"
+        f"<td>{j['after']:.2f}</td><td>{j['after'] - j['before']:+.2f}</td><td>{j['n']}</td></tr>"
+        for j in judges
+    )
+    return f'<div class="scroll"><table>{head}{rows}</table></div>'
 
 
 def _header(info, evaluation):
@@ -73,10 +144,11 @@ def _header(info, evaluation):
     body = f'<h1>{html.escape(info["behavior"]["name"])}</h1><p class="facts">{facts}</p>'
     if evaluation:
         edit = evaluation["edit"]
+        judge = f" (judge: {html.escape(evaluation['judge'])})" if evaluation.get("judge") else ""
         body += (
             f'<p class="facts">Edit: {edit["mode"]} direction from layer {edit["layer"]} '
-            f'over layers {edit["layers"][0]}–{edit["layers"][-1]}, strength {edit["strength"]} · '
-            f'{evaluation["metric"]} {evaluation["before"]:.3f} → {evaluation["after"]:.3f} (n={evaluation["n"]}) · '
+            f'over layers {edit["layers"][0]}–{edit["layers"][-1]}, strength {edit["strength"]:.3g} · '
+            f'{evaluation["metric"]}{judge} {evaluation["before"]:.3f} → {evaluation["after"]:.3f} (n={evaluation["n"]}) · '
             f'KL {evaluation["kl"]:.4f}</p>'
         )
     return body
@@ -114,38 +186,89 @@ def _optional_json(path):
 
 
 def analyze(run: Path) -> Path:
-    """Write ``report.html`` for a run and return its path."""
+    """Write ``report.html`` for a run and return its path.
+
+    Sections whose inputs are missing (search, eval, rescored judges) are skipped.
+    """
     info = load_json(run / "run.json")
+    spec = info["behavior"]
     separation = load_json(run / "separation.json")
     lens = load_json(run / "logit_lens.json")
     projections = load_tensors(run / "projections.safetensors")
+    directions = load_tensors(run / "directions.safetensors")["directions"].numpy()
     edit = _optional_json(run / "edit.json")
     evaluation = _optional_json(run / "eval.json")
+    search = _optional_json(run / "search.json")
+    judges = _optional_json(run / "judges.json")
+    tokens = _optional_json(run / "tokens.json")
     layers = best_layers(separation, edit)
-    labels = class_labels(info["behavior"])
+    labels = class_labels(spec)
+    focus = edit["layer"] if edit else int(np.argmax(separation["cohens_d"]))
 
     sections = [
         _header(info, evaluation),
         _section(
             "Layer separation",
-            "Per layer, how far apart the two classes sit along that layer's direction (held-out examples), "
-            "and how well a logistic probe on the full activation separates them.",
+            "Per layer, how far apart the two classes sit along that layer's direction (held-out examples), and how well "
+            "a logistic probe on the full activation separates them. The orange line is the lexical baseline: the same "
+            "statistics on the mean token embedding of each example, before any layer runs. Separation above it is more "
+            "than vocabulary.",
             to_div(separation_figure(separation)) + _separation_table(separation),
         ),
         _section(
+            "Direction similarity across layers",
+            "Cosine similarity between the directions extracted at each pair of layers. Blocks of high similarity show "
+            "where the representation stays stable.",
+            to_div(cosine_figure(directions)),
+        ),
+        _section(
             "Projection histograms",
-            "Held-out projections onto the direction for the top layers by effect size"
-            + (" plus the edit layer." if edit else "."),
+            "Held-out projections onto the direction for the top layers by effect size" + (" plus the edit layer." if edit else "."),
             _histograms(projections, layers, labels),
         ),
         _section(
             "Logit lens",
-            "Each direction passed through the final norm and the unembedding: "
-            "tokens the direction most promotes and suppresses.",
+            "Each direction passed through the final norm and the unembedding: tokens the direction most promotes and suppresses.",
             f'<div class="grid">{"".join(_lens_table(i, lens[i]) for i in layers)}</div>',
         ),
     ]
+    if tokens:
+        sections.append(
+            _section(
+                "Token heatmap",
+                f"Each token's projection onto layer {focus}'s direction, relative to the midpoint between the class means. "
+                "Gray tokens are template or outside the captured text. Hover a token for its value.",
+                _token_heatmap(tokens, focus, labels),
+            )
+        )
+    if search:
+        penalty = f" minus {search['length_penalty']} × |relative length change|" if search["length_penalty"] else ""
+        sections.append(
+            _section(
+                "Tradeoff",
+                f"Every search trial ({len(search['trials'])} trials on {search['n_prompts']} train prompts). The Pareto front "
+                f"is computed on the objective (target-signed score{penalty}) against KL. Hover a point for its settings.",
+                to_div(tradeoff_figure(search, METRIC_LABELS[spec["metric"]])),
+            )
+        )
+    if judges:
+        sections.append(
+            _section(
+                "Judges",
+                "The same before and after answers scored by each judge, with each judge's binary kappa against the "
+                "hand-labeled validation set. Only the default judge's numbers appear elsewhere in this report.",
+                _judge_table(judges),
+            )
+        )
+    if (run / "generations.jsonl").exists() and evaluation:
+        sections.append(
+            _section(
+                "Before and after",
+                "Answers to held-out prompts from the original model and with the edit applied, with each answer's score.",
+                _before_after(read_jsonl(run / "generations.jsonl"), spec["metric"]),
+            )
+        )
     out = run / "report.html"
-    out.write_text(_page(f"{info['behavior']['name']} report", sections))
+    out.write_text(_page(f"{spec['name']} report", sections))
     log.info("wrote %s", out)
     return out

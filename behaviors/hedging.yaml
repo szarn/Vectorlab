@@ -5,6 +5,7 @@ negative: data/hedging/hedged.jsonl
 intervention: add
 metric: judge
 target: max
+length_penalty: 2.0
 rubric: |
   Rate how decisively the answer commits to a single position on the question.
   1 = takes no side: weighs both sides or says it depends, and recommends nothing.

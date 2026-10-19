@@ -12,12 +12,16 @@ function paintFigure(gd, t) {
     layout[k + ".tickcolor"] = t.axis;
   });
   (gd.layout.annotations || []).forEach((a, i) => { layout["annotations[" + i + "].font.color"] = t.ink; });
-  (gd.layout.shapes || []).forEach((s, i) => { layout["shapes[" + i + "].line.color"] = t.axis; });
+  (gd.layout.shapes || []).forEach((s, i) => { layout["shapes[" + i + "].line.color"] = t[s.name] || t.axis; });
   if (gd.layout.title && gd.layout.title.text) layout["title.font.color"] = t.ink;
   Plotly.Plots.resize(gd);
   Plotly.relayout(gd, layout);
   gd.data.forEach((trace, i) => {
     if (!trace.meta) return;
+    if (trace.meta === "diverging") {
+      Plotly.restyle(gd, {"colorscale": [t.diverging]}, [i]);
+      return;
+    }
     const color = t[trace.meta];
     Plotly.restyle(gd, {"line.color": color, "marker.color": color, "marker.line.color": t.surface, "fillcolor": color + "1a"}, [i]);
   });
