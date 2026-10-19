@@ -1,0 +1,7 @@
+name: refusal
+capture: prompt
+positive: data/refusal/harmful.jsonl
+negative: data/refusal/harmless.jsonl
+intervention: ablate
+metric: refusal
+target: min

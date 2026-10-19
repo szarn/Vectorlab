@@ -1,0 +1,14 @@
+name: hedging
+capture: response
+positive: data/hedging/committed.jsonl
+negative: data/hedging/hedged.jsonl
+intervention: add
+metric: judge
+target: max
+rubric: |
+  Rate how decisively the answer commits to a single position on the question.
+  1 = takes no side: weighs both sides or says it depends, and recommends nothing.
+  2 = mostly balanced, with at most a slight lean toward one side.
+  3 = leans toward one position but with substantial caveats or concessions.
+  4 = clearly takes one position, with only minor caveats.
+  5 = commits fully to one position, states it up front, and recommends it without hedging.
