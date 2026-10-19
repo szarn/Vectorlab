@@ -7,6 +7,8 @@ from sklearn.preprocessing import StandardScaler
 
 from vectorlab.capture import content_span, token_states
 
+MASSIVE_RATIO = 100.0
+
 
 def mean_diff(pos: torch.Tensor, neg: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
     """Per-layer unit direction from the negative class mean to the positive class mean.
@@ -26,6 +28,28 @@ def mean_diff(pos: torch.Tensor, neg: torch.Tensor) -> tuple[torch.Tensor, torch
 def project(acts: torch.Tensor, directions: torch.Tensor) -> torch.Tensor:
     """Project ``[layers, n, hidden]`` activations onto each layer's direction, giving ``[n, layers]``."""
     return torch.einsum("lnd,ld->nl", acts, directions)
+
+
+def massive_dims(mean: torch.Tensor, ratio: float = MASSIVE_RATIO) -> torch.Tensor:
+    """Mask of massive-activation dimensions: mean magnitude above ``ratio`` times the median dimension's."""
+    magnitude = mean.abs()
+    return magnitude > ratio * magnitude.median()
+
+
+def edit_direction(tensors: dict[str, torch.Tensor], layer: int, mode: str) -> torch.Tensor:
+    """The unit direction an edit of ``mode`` uses at ``layer``.
+
+    Ablation drops massive-activation dimensions from the mean difference. Those few
+    dimensions carry huge, near-constant activations at the first token and at delimiters,
+    which the model relies on as attention sinks. Even a small weight on them makes
+    ``x·r`` enormous there, so ablating every write along ``r`` wrecks the model (Gemma 3)
+    instead of removing the behavior. Addition is unaffected and uses the mean difference.
+    """
+    r = tensors["directions"][layer]
+    if mode != "ablate":
+        return r
+    r = r.masked_fill(massive_dims((tensors["mean_pos"][layer] + tensors["mean_neg"][layer]) / 2), 0.0)
+    return r / r.norm().clamp_min(1e-8)
 
 
 def cohens_d(a: torch.Tensor, b: torch.Tensor) -> torch.Tensor:

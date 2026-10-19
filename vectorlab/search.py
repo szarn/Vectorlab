@@ -16,6 +16,7 @@ from statistics import mean
 import optuna
 
 from vectorlab.chat import answer_ids
+from vectorlab.directions import edit_direction
 from vectorlab.evaluate import neutral_prompts
 from vectorlab.generate import generate
 from vectorlab.hooks import intervene
@@ -137,7 +138,7 @@ def search(
 
     def objective(trial):
         config = suggest(trial, spec["intervention"], tensors["diff_norms"])
-        with intervene(adapter, tensors["directions"][config["layer"]], config["mode"], config["layers"], config["strength"]):
+        with intervene(adapter, edit_direction(tensors, config["layer"], config["mode"]), config["mode"], config["layers"], config["strength"]):
             texts = generate(model, tok, adapter, prompts, tokens, batch_size)
             divergence = kl(ref, next_logprobs(model, tok, adapter, neutral))
         score = mean(scores(texts))

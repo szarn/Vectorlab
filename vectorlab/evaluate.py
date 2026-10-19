@@ -6,6 +6,7 @@ from pathlib import Path
 from statistics import mean
 
 from vectorlab.behavior import read_jsonl, write_jsonl
+from vectorlab.directions import edit_direction
 from vectorlab.generate import generate
 from vectorlab.hooks import intervene
 from vectorlab.judge import JUDGE_MODEL, judge_scores
@@ -61,7 +62,7 @@ def run_with_edit(info: dict, config: dict, prompts: list[str], max_new_tokens: 
     """
     model, tok, adapter = load(info["model"])
     before, ref = original_outputs(info["model"], prompts, max_new_tokens, batch_size, lambda: (model, tok, adapter))
-    r = load_tensors(info["run"] / "directions.safetensors")["directions"][config["layer"]]
+    r = edit_direction(load_tensors(info["run"] / "directions.safetensors"), config["layer"], config["mode"])
     log.info("applying %s at layers %s with strength %s", config["mode"], config["layers"], config["strength"])
     if config.get("weights"):
         apply_edit(model, adapter, r, config)

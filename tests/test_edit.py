@@ -4,6 +4,7 @@ import pytest
 import torch
 
 from conftest import EXACT, TINY, tiny_model, unit
+from vectorlab.directions import edit_direction
 from vectorlab.weights import bake_bias, orthogonalize
 
 
@@ -112,3 +113,13 @@ def test_post_norm_edit_removes_the_part_the_hook_removes():
     for linear, norm, x, expected in zip(adapter.projections(layer), adapter.post_norms(layer), inputs, hooked):
         cosine = torch.nn.functional.cosine_similarity(norm(linear(x)), expected, dim=-1)
         assert cosine.min() > 0.999
+
+
+def test_ablation_direction_drops_massive_dimensions():
+    mean = torch.ones(1, 64)
+    mean[0, 5] = 1e4
+    raw = unit(64).unsqueeze(0)
+    tensors = {"directions": raw, "mean_pos": mean, "mean_neg": mean}
+    r = edit_direction(tensors, 0, "ablate")
+    assert r[5] == 0 and torch.isclose(r.norm(), torch.tensor(1.0))
+    assert torch.equal(edit_direction(tensors, 0, "add"), raw[0])

@@ -14,6 +14,7 @@ import numpy as np
 from plotly.offline import get_plotlyjs
 
 from vectorlab.behavior import read_jsonl
+from vectorlab.directions import MASSIVE_RATIO, massive_dims
 from vectorlab.edit import describe
 from vectorlab.figures import DARK, LIGHT, cosine_figure, histogram_figure, separation_figure, to_div, tradeoff_figure
 from vectorlab.store import load_json, load_tensors
@@ -151,6 +152,21 @@ def _variants_table(model_id, evaluation, variants, metric):
     return f'<div class="scroll"><table>{head}{cells}</table></div>'
 
 
+def _massive_note(tensors, edit):
+    if not edit or edit["mode"] != "ablate":
+        return ""
+    layer = edit["layer"]
+    mask = massive_dims((tensors["mean_pos"][layer] + tensors["mean_neg"][layer]) / 2)
+    if not mask.any():
+        return ""
+    share = (tensors["directions"][layer][mask] ** 2).sum().item()
+    return (
+        f'<p class="facts">The ablation direction leaves out {int(mask.sum())} massive-activation dimension(s) '
+        f"(mean magnitude over {MASSIVE_RATIO:.0f}× the median), which held {share:.0%} of the layer-{layer} "
+        "direction's squared length.</p>"
+    )
+
+
 def _header(info, evaluation):
     counts = info["counts"]
     facts = (
@@ -210,7 +226,8 @@ def analyze(run: Path) -> Path:
     separation = load_json(run / "separation.json")
     lens = load_json(run / "logit_lens.json")
     projections = load_tensors(run / "projections.safetensors")
-    directions = load_tensors(run / "directions.safetensors")["directions"].numpy()
+    tensors = load_tensors(run / "directions.safetensors")
+    directions = tensors["directions"].numpy()
     edit = _optional_json(run / "edit.json")
     evaluation = _optional_json(run / "eval.json")
     search = _optional_json(run / "search.json")
@@ -222,7 +239,7 @@ def analyze(run: Path) -> Path:
     focus = edit["layer"] if edit else int(np.argmax(separation["cohens_d"]))
 
     sections = [
-        _header(info, evaluation),
+        _header(info, evaluation) + _massive_note(tensors, evaluation["edit"] if evaluation else edit),
         _section(
             "Layer separation",
             "Per layer, how far apart the two classes sit along that layer's direction (held-out examples), and how well "

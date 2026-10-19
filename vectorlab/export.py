@@ -7,7 +7,9 @@ released before the export loads, so two copies are never in memory together.
 
 import contextlib
 import io
+import json
 import logging
+import os
 import tempfile
 from pathlib import Path
 
@@ -16,6 +18,7 @@ import torch
 from transformers import AutoTokenizer
 
 from vectorlab.chat import prompt_ids
+from vectorlab.directions import edit_direction
 from vectorlab.evaluate import neutral_prompts
 from vectorlab.metrics import KL_BATCH, kl, next_logprobs
 from vectorlab.model import free, load
@@ -45,13 +48,34 @@ def save_edited(run: Path, out: Path) -> tuple[torch.Tensor, torch.Tensor, list[
     prompts = neutral_prompts()[:KL_BATCH]
     model, tok, adapter = load(info["model"])
     original = next_logprobs(model, tok, adapter, prompts)
-    apply_edit(model, adapter, load_tensors(run / "directions.safetensors")["directions"][config["layer"]], config)
+    apply_edit(model, adapter, edit_direction(load_tensors(run / "directions.safetensors"), config["layer"], config["mode"]), config)
     edited = next_logprobs(model, tok, adapter, prompts)
     ids = [prompt_ids(tok, adapter, p) for p in prompts]
     log.info("saving the edited model to %s", out)
     model.save_pretrained(out)
     AutoTokenizer.from_pretrained(info["model"]).save_pretrained(out)
     return original, edited, ids
+
+
+def nest_lm_head(hf_dir: Path) -> None:
+    """Move a multimodal checkpoint's top-level ``lm_head`` under ``language_model``.
+
+    transformers saves an untied Gemma 3 unembedding as ``lm_head.weight``, but mlx-lm's
+    Gemma 3 loader only looks for it inside ``language_model``. Text-only checkpoints are
+    left alone.
+    """
+    import mlx.core as mx
+
+    if "text_config" not in json.loads((hf_dir / "config.json").read_text()):
+        return
+    for path in sorted(hf_dir.glob("*.safetensors")):
+        weights = mx.load(str(path))
+        if "lm_head.weight" not in weights:
+            continue
+        weights["language_model.lm_head.weight"] = weights.pop("lm_head.weight")
+        moved = path.with_name(f"moved-{path.name}")
+        mx.save_safetensors(str(moved), weights, metadata={"format": "pt"})
+        os.replace(moved, path)
 
 
 def mlx_logprobs(path: Path, ids: list[list[int]]) -> torch.Tensor:
@@ -85,6 +109,7 @@ def export(run: Path, fmt: str, out: Path) -> dict:
         with tempfile.TemporaryDirectory() as staging:
             original, edited, ids = save_edited(run, Path(staging) / "hf")
             free()
+            nest_lm_head(Path(staging) / "hf")
             log.info("converting to MLX in %s", out)
             printed = io.StringIO()
             with contextlib.redirect_stdout(printed):
