@@ -77,6 +77,16 @@ def require_file(path: Path, hint: str) -> None:
         raise UserError(f"{path} not found; {hint}")
 
 
+def require_same_vocab(run: Path, model_id: str) -> None:
+    """Raise UserError unless ``model_id`` shares the run model's vocabulary, which KL comparison needs."""
+    from transformers import AutoConfig
+
+    original = json.loads((run / "run.json").read_text())["model"]
+    sizes = [AutoConfig.from_pretrained(m).get_text_config().vocab_size for m in (original, model_id)]
+    if sizes[0] != sizes[1]:
+        raise UserError(f"{model_id} has a {sizes[1]}-token vocabulary but {original} has {sizes[0]}; KL needs the same vocabulary")
+
+
 def cmd_extract(args):
     from vectorlab.behavior import load_behavior
     from vectorlab.extract import extract
@@ -105,9 +115,9 @@ def cmd_edit(args):
         raise UserError("give exactly one of --layer or --trial")
     if args.trial is not None:
         require_run(args.run, "search.json")
-        print(json.dumps(edit_from_trial(args.run, args.trial)))
+        print(json.dumps(edit_from_trial(args.run, args.trial, args.weights, args.preserve_norms)))
         return
-    print(json.dumps(edit(args.run, args.layer, args.mode, args.alpha, args.range, args.weights)))
+    print(json.dumps(edit(args.run, args.layer, args.mode, args.alpha, args.range, args.weights, args.preserve_norms)))
 
 
 def cmd_search(args):
@@ -136,12 +146,40 @@ def cmd_search(args):
 def cmd_eval(args):
     from vectorlab.evaluate import NEUTRAL, evaluate
     from vectorlab.judge import JUDGE_MODEL
+    from vectorlab.model import slug
 
-    require_run(args.run, "directions.safetensors", "edit.json")
+    require_run(args.run, "directions.safetensors")
     require_file(NEUTRAL, "create it with `python scripts/fetch_refusal.py`")
-    result = evaluate(args.run, args.n, args.batch_size, args.judge or JUDGE_MODEL)
+    if args.model:
+        require_model(args.model)
+        require_same_vocab(args.run, args.model)
+    else:
+        require_run(args.run, "edit.json")
+    tag = args.tag or (slug(args.model) if args.model else None)
+    result, out = evaluate(args.run, args.n, args.batch_size, args.judge or JUDGE_MODEL, args.model, tag)
     print(f"{result['metric']:>10}  before {result['before']:.3f}  after {result['after']:.3f}  (n={result['n']})")
     print(f"{'kl':>10}  {result['kl']:.4f}")
+    print(out / "eval.json")
+
+
+def cmd_export(args):
+    from vectorlab.edit import check_bakeable, model_type
+    from vectorlab.export import MLX_ATTENTION_BIAS, default_out, export
+
+    require_run(args.run, "directions.safetensors", "edit.json")
+    config = json.loads((args.run / "edit.json").read_text())
+    check_bakeable(args.run, config)
+    kind = model_type(args.run)
+    if args.format == "mlx" and config["mode"] == "add" and kind not in MLX_ATTENTION_BIAS:
+        raise UserError(f"mlx-lm's {kind} model has no attention biases, so a baked addition would be dropped; export safetensors instead")
+    out = args.out or default_out(args.run, args.format)
+    if out.exists():
+        raise UserError(f"{out} already exists; remove it or choose another --out")
+    check = export(args.run, args.format, out)
+    print(f"reload check on {check['prompts']} neutral prompts:")
+    print(f"  KL edited model -> export   {check['kl_edit_to_export']:.5f}")
+    print(f"  KL original     -> export   {check['kl_original_to_export']:.5f}")
+    print(out)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -170,7 +208,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--mode", choices=["ablate", "add"], help="defaults to the behavior's intervention")
     p.add_argument("--alpha", type=float, help="ablation scale (default 1.0) or addition coefficient")
     p.add_argument("--range", help="START:END layers to intervene on")
-    p.add_argument("--weights", action="store_true", help="bake the edit into the weights")
+    p.add_argument("--weights", action="store_true", help="evaluate the edit baked into the weights instead of hooks")
+    p.add_argument("--preserve-norms", action="store_true", help="with --weights ablation, keep each write vector's length")
     p.set_defaults(func=cmd_edit)
 
     p = sub.add_parser("search", parents=[common], help="Optuna search over layer, strength, and layer range")
@@ -188,7 +227,15 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--n", type=int, help="evaluate only the first N held-out prompts")
     p.add_argument("--batch-size", type=int, default=16)
     p.add_argument("--judge", help="judge model for judge metrics (default google/gemma-3-12b-it)")
+    p.add_argument("--model", help="evaluate this model (e.g. another edit of the run's model) instead of the run's edit")
+    p.add_argument("--tag", help="store results in evals/TAG/ (default for --model: the model's name)")
     p.set_defaults(func=cmd_eval)
+
+    p = sub.add_parser("export", parents=[common], help="write the edited model as safetensors or MLX")
+    p.add_argument("run", type=Path)
+    p.add_argument("--format", choices=["safetensors", "mlx"], default="safetensors")
+    p.add_argument("--out", type=Path, help="output directory (default: RUN/export-FORMAT)")
+    p.set_defaults(func=cmd_export)
     return parser
 
 

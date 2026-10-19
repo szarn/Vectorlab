@@ -14,6 +14,7 @@ import numpy as np
 from plotly.offline import get_plotlyjs
 
 from vectorlab.behavior import read_jsonl
+from vectorlab.edit import describe
 from vectorlab.figures import DARK, LIGHT, cosine_figure, histogram_figure, separation_figure, to_div, tradeoff_figure
 from vectorlab.store import load_json, load_tensors
 
@@ -134,6 +135,22 @@ def _judge_table(judges):
     return f'<div class="scroll"><table>{head}{rows}</table></div>'
 
 
+def _variants_table(model_id, evaluation, variants, metric):
+    head = f"<tr><th>variant</th><th>model</th><th>edit</th><th>{METRIC_LABELS[metric]}</th><th>KL</th><th>n</th></tr>"
+    first = evaluation or variants[0][1]
+    rows = [("original", {"edit": None, "after": first["before"], "kl": 0.0, "n": first["n"]})]
+    if evaluation:
+        rows.append(("current edit", evaluation))
+    rows += variants
+    cells = "".join(
+        f"<tr><td>{html.escape(name)}</td><td>{html.escape(e.get('model', model_id))}</td>"
+        f"<td>{html.escape(describe(e['edit'])) if e['edit'] else '–'}</td>"
+        f"<td>{e['after']:.3f}</td><td>{e['kl']:.4f}</td><td>{e['n']}</td></tr>"
+        for name, e in rows
+    )
+    return f'<div class="scroll"><table>{head}{cells}</table></div>'
+
+
 def _header(info, evaluation):
     counts = info["counts"]
     facts = (
@@ -143,11 +160,9 @@ def _header(info, evaluation):
     )
     body = f'<h1>{html.escape(info["behavior"]["name"])}</h1><p class="facts">{facts}</p>'
     if evaluation:
-        edit = evaluation["edit"]
         judge = f" (judge: {html.escape(evaluation['judge'])})" if evaluation.get("judge") else ""
         body += (
-            f'<p class="facts">Edit: {edit["mode"]} direction from layer {edit["layer"]} '
-            f'over layers {edit["layers"][0]}–{edit["layers"][-1]}, strength {edit["strength"]:.3g} · '
+            f'<p class="facts">Edit: {html.escape(describe(evaluation["edit"]))} · '
             f'{evaluation["metric"]}{judge} {evaluation["before"]:.3f} → {evaluation["after"]:.3f} (n={evaluation["n"]}) · '
             f'KL {evaluation["kl"]:.4f}</p>'
         )
@@ -188,7 +203,7 @@ def _optional_json(path):
 def analyze(run: Path) -> Path:
     """Write ``report.html`` for a run and return its path.
 
-    Sections whose inputs are missing (search, eval, rescored judges) are skipped.
+    Sections whose inputs are missing (search, eval, evaluated variants, rescored judges) are skipped.
     """
     info = load_json(run / "run.json")
     spec = info["behavior"]
@@ -201,6 +216,7 @@ def analyze(run: Path) -> Path:
     search = _optional_json(run / "search.json")
     judges = _optional_json(run / "judges.json")
     tokens = _optional_json(run / "tokens.json")
+    variants = [(path.parent.name, load_json(path)) for path in sorted(run.glob("evals/*/eval.json"))]
     layers = best_layers(separation, edit)
     labels = class_labels(spec)
     focus = edit["layer"] if edit else int(np.argmax(separation["cohens_d"]))
@@ -258,6 +274,15 @@ def analyze(run: Path) -> Path:
                 "The same before and after answers scored by each judge, with each judge's binary kappa against the "
                 "hand-labeled validation set. Only the default judge's numbers appear elsewhere in this report.",
                 _judge_table(judges),
+            )
+        )
+    if variants:
+        sections.append(
+            _section(
+                "Variants",
+                "Held-out results for every evaluated variant: the run's edit, other edit settings, and other models "
+                "compared with the same original. KL is always measured against the original on the neutral prompts.",
+                _variants_table(info["model"], evaluation, variants, spec["metric"]),
             )
         )
     if (run / "generations.jsonl").exists() and evaluation:

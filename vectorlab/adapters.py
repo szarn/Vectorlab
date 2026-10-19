@@ -22,10 +22,13 @@ class Adapter:
         tied: Whether the unembedding shares its weight tensor with the embedding.
         norm_offset: Constant the architecture adds to RMSNorm weights (1.0 for Gemma's ``1 + w``).
         template_kwargs: Extra keyword arguments for ``tokenizer.apply_chat_template``.
+        bakes_bias: Whether an ``o_proj`` bias reproduces the addition hook exactly, which needs
+            the attention projection's output to join the residual stream unchanged.
     """
 
     norm_offset = 0.0
     template_kwargs: dict = {}
+    bakes_bias = True
 
     def __init__(self, model: nn.Module):
         self.model = model
@@ -40,6 +43,14 @@ class Adapter:
         """Return the modules in ``layer`` whose outputs are added to the residual stream, attention first."""
         return [layer.self_attn.o_proj, layer.mlp.down_proj]
 
+    def projections(self, layer: nn.Module) -> list[nn.Linear]:
+        """Return the attention and MLP output projections, the linear maps behind each residual write."""
+        return [layer.self_attn.o_proj, layer.mlp.down_proj]
+
+    def post_norms(self, layer: nn.Module) -> list[nn.Module | None]:
+        """Return the norm applied to each projection's output before it joins the residual stream, if any."""
+        return [None, None]
+
 
 class Qwen3(Adapter):
     """Qwen3. Thinking is disabled in the chat template so prompts end where the answer starts."""
@@ -48,17 +59,24 @@ class Qwen3(Adapter):
 
 
 class Llama(Adapter):
-    """Llama 2/3."""
+    """Llama 2/3. The date the Llama 3 template writes into its system header is pinned, so prompts never change."""
+
+    template_kwargs = {"date_string": "26 Jul 2024"}
 
 
 class Gemma3(Adapter):
     """Gemma 3. Attention and MLP outputs pass through post-norms before joining the residual stream."""
 
     norm_offset = 1.0
+    bakes_bias = False
 
     def writers(self, layer: nn.Module) -> list[nn.Module]:
         """Return the post-attention and post-feedforward norms, whose outputs are the residual writes."""
         return [layer.post_attention_layernorm, layer.post_feedforward_layernorm]
+
+    def post_norms(self, layer: nn.Module) -> list[nn.Module | None]:
+        """Return the post-attention and post-feedforward norms."""
+        return self.writers(layer)
 
 
 ADAPTERS = {"qwen3": Qwen3, "llama": Llama, "gemma3": Gemma3, "gemma3_text": Gemma3}

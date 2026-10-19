@@ -29,3 +29,11 @@ packages = ["vectorlab"]
 
 [tool.setuptools.package-data]
 vectorlab = ["assets/*"]
+
+[project.optional-dependencies]
+mlx = ["mlx-lm==0.32.2"]
+dev = ["pytest==9.1.1"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["slow: loads real checkpoints from the Hugging Face cache"]
