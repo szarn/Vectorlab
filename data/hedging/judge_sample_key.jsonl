@@ -1,0 +1,60 @@
+{"id": 0, "condition": "4B LNone x0.0", "source": "runs/hedging-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 1, "condition": "0.6B L18 x-1.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 2, "condition": "dataset committed", "source": "data"}
+{"id": 3, "condition": "0.6B L18 x-1.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 4, "condition": "0.6B LNone x0.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 5, "condition": "0.6B LNone x0.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 6, "condition": "dataset committed", "source": "data"}
+{"id": 7, "condition": "4B L21 x2.0", "source": "runs/hedging-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 8, "condition": "0.6B L12 x2.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 9, "condition": "dataset hedged", "source": "data"}
+{"id": 10, "condition": "dataset committed", "source": "data"}
+{"id": 11, "condition": "0.6B L12 x2.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 12, "condition": "0.6B L18 x1.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 13, "condition": "0.6B LNone x0.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 14, "condition": "0.6B L18 x-1.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 15, "condition": "4B L21 x2.0", "source": "runs/hedging-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 16, "condition": "4B L21 x2.0", "source": "runs/hedging-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 17, "condition": "0.6B L12 x2.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 18, "condition": "4B LNone x0.0", "source": "runs/hedging-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 19, "condition": "0.6B L18 x1.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 20, "condition": "0.6B LNone x0.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 21, "condition": "0.6B LNone x0.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 22, "condition": "4B L21 x-1.0", "source": "runs/hedging-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 23, "condition": "4B L21 x2.0", "source": "runs/hedging-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 24, "condition": "4B LNone x0.0", "source": "runs/hedging-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 25, "condition": "0.6B L18 x-1.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 26, "condition": "0.6B L12 x2.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 27, "condition": "dataset hedged", "source": "data"}
+{"id": 28, "condition": "dataset hedged", "source": "data"}
+{"id": 29, "condition": "0.6B L18 x1.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 30, "condition": "dataset hedged", "source": "data"}
+{"id": 31, "condition": "dataset hedged", "source": "data"}
+{"id": 32, "condition": "0.6B L18 x1.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 33, "condition": "4B LNone x0.0", "source": "runs/hedging-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 34, "condition": "0.6B L18 x1.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 35, "condition": "dataset committed", "source": "data"}
+{"id": 36, "condition": "4B LNone x0.0", "source": "runs/hedging-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 37, "condition": "dataset committed", "source": "data"}
+{"id": 38, "condition": "dataset hedged", "source": "data"}
+{"id": 39, "condition": "0.6B LNone x0.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 40, "condition": "4B L21 x2.0", "source": "runs/hedging-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 41, "condition": "0.6B L18 x-1.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 42, "condition": "0.6B L18 x1.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 43, "condition": "0.6B L18 x1.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 44, "condition": "0.6B L12 x2.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 45, "condition": "4B L21 x2.0", "source": "runs/hedging-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 46, "condition": "4B L21 x-1.0", "source": "runs/hedging-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 47, "condition": "4B LNone x0.0", "source": "runs/hedging-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 48, "condition": "0.6B L18 x1.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 49, "condition": "dataset committed", "source": "data"}
+{"id": 50, "condition": "0.6B L12 x2.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 51, "condition": "4B LNone x0.0", "source": "runs/hedging-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 52, "condition": "4B L21 x2.0", "source": "runs/hedging-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 53, "condition": "4B LNone x0.0", "source": "runs/hedging-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 54, "condition": "0.6B L18 x-1.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 55, "condition": "4B L21 x-1.0", "source": "runs/hedging-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 56, "condition": "0.6B LNone x0.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 57, "condition": "4B L21 x-1.0", "source": "runs/hedging-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 58, "condition": "0.6B LNone x0.0", "source": "runs/hedging-Qwen--Qwen3-0.6B"}
+{"id": 59, "condition": "4B L21 x2.0", "source": "runs/hedging-Qwen--Qwen3-4B-Instruct-2507"}
