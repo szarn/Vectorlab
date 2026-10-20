@@ -1,8 +1,8 @@
-# vectorlab
+# Vectorlab
 
 Find, inspect and edit behavior directions in transformer language models.
 
-vectorlab takes a behavior defined by two contrasting datasets, such as harmful vs harmless prompts or
+Vectorlab takes a behavior defined by two contrasting datasets, such as harmful vs harmless prompts or
 committed vs hedged answers. From these it:
 
 - extracts a direction for the behavior at every layer;
@@ -134,6 +134,8 @@ tests/
 ```
 
 ## License
+
+Copyright 2026 szarn
 
 Apache License 2.0; see [LICENSE](LICENSE).
 
