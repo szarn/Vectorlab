@@ -37,9 +37,9 @@ details, figures and caveats.
 | verbosity, answer-text direction | Qwen3-4B | add | 322 → 316 tokens (n=60), no real effect | 0.011 |
 | verbosity, instruction-pair direction | Qwen3-4B | add (over the KL budget) | 322 → 256 tokens (n=60), −21% | 0.465 |
 
-The judge is google/gemma-3-12b-it. Against labels written by Claude and spot-checked by the project
-owner, it agrees at κ 0.90 for hedging and 0.81 for sycophancy. For sycophancy it scores stance against a
-reference answer, and it was validated on a blind test set.
+The judge is google/gemma-3-12b-it. It agrees with labeled answers at κ 0.90 for hedging and 0.81 for
+sycophancy; [Limitations](FINDINGS.md#limitations) explains how the labels were made. For sycophancy it
+scores stance against a reference answer, and it was validated on a blind test set.
 
 ![Cross-effect matrix of the hedging, sycophancy and verbosity edits](docs/figures/cross-effects.svg)
 
@@ -156,8 +156,8 @@ Copyright 2026 szarn
 
 Apache License 2.0; see [LICENSE](LICENSE).
 
-- **Covered:** the code, plus the datasets committed here. Those are seed pairs written by Claude and pairs
-  generated from them with Qwen3-4B-Instruct-2507.
+- **Covered:** the code, plus the datasets committed here. Those are seed pairs and pairs generated
+  from them with Qwen3-4B-Instruct-2507.
 - **Not redistributed:** the refusal and neutral prompts. `scripts/fetch_refusal.py` downloads them under
   their own licenses: MIT for AdvBench and JailbreakBench, CC BY 4.0 for Alpaca-cleaned.
 - **Plotly.js:** the HTML reports embed Plotly.js, which keeps its MIT notice.
