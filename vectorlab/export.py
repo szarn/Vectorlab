@@ -10,11 +10,13 @@ import io
 import json
 import logging
 import os
+import shutil
 import tempfile
 from pathlib import Path
 
 import numpy as np
 import torch
+from huggingface_hub import snapshot_download
 from transformers import AutoTokenizer
 
 from vectorlab.chat import prompt_ids
@@ -26,6 +28,7 @@ from vectorlab.store import load_json, load_tensors, save_json
 from vectorlab.weights import apply_edit
 
 FORMATS = ("safetensors", "mlx")
+PROCESSOR_FILES = ["preprocessor_config.json", "processor_config.json"]
 MLX_ATTENTION_BIAS = {"llama"}
 
 log = logging.getLogger(__name__)
@@ -36,8 +39,18 @@ def default_out(run: Path, fmt: str) -> Path:
     return run / f"export-{fmt}"
 
 
+def copy_processor_files(model_id: str, out: Path) -> None:
+    """Copy a multimodal model's image-processor configs, so the export can still take images."""
+    source = Path(model_id) if Path(model_id).is_dir() else Path(snapshot_download(model_id, allow_patterns=PROCESSOR_FILES))
+    for name in PROCESSOR_FILES:
+        if (source / name).exists():
+            shutil.copy(source / name, out / name)
+
+
 def save_edited(run: Path, out: Path) -> tuple[torch.Tensor, torch.Tensor, list[list[int]]]:
     """Load the run's model, apply its edit to the weights, and save a Hugging Face checkpoint to ``out``.
+
+    Multimodal models keep their image-processor configs, so the checkpoint can still take images.
 
     Returns:
         ``(original, edited, ids)``: next-token log-probs of the original and edited model on
@@ -54,6 +67,8 @@ def save_edited(run: Path, out: Path) -> tuple[torch.Tensor, torch.Tensor, list[
     log.info("saving the edited model to %s", out)
     model.save_pretrained(out)
     AutoTokenizer.from_pretrained(info["model"]).save_pretrained(out)
+    if hasattr(model.config, "vision_config"):
+        copy_processor_files(info["model"], out)
     return original, edited, ids
 
 

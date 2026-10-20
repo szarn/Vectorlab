@@ -162,6 +162,39 @@ def cmd_eval(args):
     print(out / "eval.json")
 
 
+def cmd_compare(args):
+    from vectorlab.compare import compare
+    from vectorlab.evaluate import NEUTRAL
+    from vectorlab.judge import JUDGE_MODEL
+
+    for run in args.runs:
+        require_run(run, "directions.safetensors", "edit.json")
+    for run in args.directions_only:
+        require_run(run, "directions.safetensors")
+    runs = args.runs + args.directions_only
+    if len(runs) < 2:
+        raise UserError("give at least two runs to compare")
+    infos = [json.loads((run / "run.json").read_text()) for run in runs]
+    models = sorted({info["model"] for info in infos})
+    if len(models) > 1:
+        raise UserError(f"runs must share one model; got {', '.join(models)}")
+    names = [info["behavior"]["name"] for info in infos]
+    if len(set(names)) < len(names):
+        raise UserError(f"each behavior can appear once; got {', '.join(names)}")
+    if args.runs:
+        require_file(NEUTRAL, "create it with `python scripts/fetch_refusal.py`")
+    path, result = compare(args.runs, args.directions_only, args.batch_size, args.judge or JUDGE_MODEL)
+    if result:
+        behaviors = result["behaviors"]
+        cells = {(c["edit"], c["behavior"]): c for c in result["cells"]}
+        print("change in each behavior's metric (95% CI), rows are edits")
+        print(f"{'edit':<12}" + "".join(f"{b:>20}" for b in behaviors) + f"{'kl':>9}")
+        for e in behaviors:
+            row = "".join(f"{cells[e, b]['delta']:>+12.2f} ±{cells[e, b]['ci']:<6.2f}" for b in behaviors)
+            print(f"{e:<12}{row}{result['kl'][e]:9.4f}")
+    print(path)
+
+
 def cmd_export(args):
     from vectorlab.edit import check_bakeable, model_type
     from vectorlab.export import MLX_ATTENTION_BIAS, default_out, export
@@ -230,6 +263,13 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--model", help="evaluate this model (e.g. another edit of the run's model) instead of the run's edit")
     p.add_argument("--tag", help="store results in evals/TAG/ (default for --model: the model's name)")
     p.set_defaults(func=cmd_eval)
+
+    p = sub.add_parser("compare", parents=[common], help="compare behaviors' directions and their edits' cross-effects on one model")
+    p.add_argument("runs", type=Path, nargs="*", help="runs whose edits are applied to each other's held-out prompts")
+    p.add_argument("--directions-only", type=Path, action="append", default=[], metavar="RUN", help="include RUN in the direction similarity and KL views only")
+    p.add_argument("--batch-size", type=int, default=16)
+    p.add_argument("--judge", help="judge model for judge metrics (default google/gemma-3-12b-it)")
+    p.set_defaults(func=cmd_compare)
 
     p = sub.add_parser("export", parents=[common], help="write the edited model as safetensors or MLX")
     p.add_argument("run", type=Path)

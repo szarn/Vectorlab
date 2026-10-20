@@ -143,6 +143,7 @@ def evaluate(
         "after": mean(after_scores),
         "kl": kl_value,
         "n": len(prompts),
+        "batch_size": batch_size,
         "edit": config,
         **({"judge": judge_model} if metric == "judge" else {}),
     }

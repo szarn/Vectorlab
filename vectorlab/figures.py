@@ -221,3 +221,91 @@ def tradeoff_figure(search: dict, metric_label: str) -> go.Figure:
     fig = styled(fig, 440)
     fig.update_layout(margin=dict(t=84))
     return fig
+
+
+def pair_cosine_figure(cosines: np.ndarray, title: str, band: float) -> go.Figure:
+    """Cosine between two behaviors' directions at each layer, on a fixed -1 to 1 scale.
+
+    The shaded band spans ``±band``, where the cosine of two random directions would usually fall.
+    """
+    layers = list(range(len(cosines)))
+    fig = go.Figure(
+        go.Scatter(
+            x=layers,
+            y=cosines,
+            mode="lines+markers",
+            meta="s1",
+            line=dict(color=LIGHT["s1"], width=2),
+            marker=dict(size=5, color=LIGHT["s1"], line=dict(color=LIGHT["surface"], width=1)),
+            hovertemplate="layer %{x}<br>cosine %{y:.3f}<extra></extra>",
+            showlegend=False,
+        )
+    )
+    fig.add_hrect(y0=-band, y1=band, fillcolor="rgba(128, 128, 128, 0.18)", line_width=0, layer="below")
+    fig.add_hline(y=0, line=dict(color=LIGHT["axis"], width=1))
+    fig.update_layout(title=dict(text=title, x=0.5, font=dict(size=13, color=LIGHT["ink"])))
+    fig.update_xaxes(title_text="layer")
+    fig.update_yaxes(title_text="cosine", range=[-1, 1], dtick=0.5)
+    fig = styled(fig, 260)
+    fig.update_layout(margin=dict(l=48, r=12, t=40, b=40))
+    return fig
+
+
+def matrix_figure(z, x: list[str], y: list[str], text, hover, zmax: float, colorbar: str, title: str | None = None, height: int = 340) -> go.Figure:
+    """Annotated heatmap on the diverging scale, centered on zero and saturating at ``±zmax``.
+
+    Args:
+        z: Values that color the cells, shaped ``[len(y), len(x)]``.
+        text: The label printed in each cell.
+        hover: The hover text of each cell.
+    """
+    fig = go.Figure(
+        go.Heatmap(
+            z=z,
+            x=x,
+            y=y,
+            text=text,
+            texttemplate="%{text}",
+            customdata=hover,
+            hovertemplate="%{customdata}<extra></extra>",
+            zmin=-zmax,
+            zmax=zmax,
+            zmid=0,
+            colorscale=LIGHT["diverging"],
+            meta="diverging",
+            xgap=2,
+            ygap=2,
+            colorbar=dict(title=dict(text=colorbar), thickness=12, outlinewidth=0),
+        )
+    )
+    if title:
+        fig.update_layout(title=dict(text=title, x=0.5, font=dict(size=13, color=LIGHT["ink"])))
+    fig.update_xaxes(showline=False, ticks="")
+    fig.update_yaxes(showgrid=False, showline=False, autorange="reversed")
+    fig = styled(fig, height)
+    fig.update_layout(margin=dict(l=96))
+    return fig
+
+
+def kl_figure(names: list[str], values: list[float], hover: list[str]) -> go.Figure:
+    """Horizontal bars: each edit's KL divergence from the original model on the neutral prompts."""
+    fig = go.Figure(
+        go.Bar(
+            x=values,
+            y=names,
+            orientation="h",
+            meta="s1",
+            width=0.5,
+            marker=dict(color=LIGHT["s1"], line=dict(width=0)),
+            text=[f"{v:.3f}" for v in values],
+            textposition="outside",
+            cliponaxis=False,
+            customdata=hover,
+            hovertemplate="%{y}<br>KL %{x:.4f}<br>%{customdata}<extra></extra>",
+        )
+    )
+    fig = styled(fig, 96 + 44 * len(names))
+    fig.update_xaxes(title_text="KL divergence on neutral prompts", rangemode="tozero", showgrid=True, gridcolor=LIGHT["grid"])
+    fig.update_yaxes(showgrid=False, autorange="reversed", ticks="")
+    fig.update_layout(margin=dict(l=96, r=48, t=16, b=44))
+    return fig

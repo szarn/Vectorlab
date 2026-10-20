@@ -106,3 +106,6 @@ details { margin-top: 12px; color: var(--ink2); }
 .cols > * { min-width: 0; }
 .cols h4 { font-size: 12px; margin: 0 0 4px; color: var(--ink2); font-weight: 600; }
 .gen { white-space: pre-wrap; max-height: 260px; overflow: auto; font-size: 13px; background: var(--page); border: 1px solid var(--border); border-radius: 8px; padding: 10px; }
+
+td.wrap { white-space: normal; min-width: 24ch; }
+details > summary { cursor: pointer; }

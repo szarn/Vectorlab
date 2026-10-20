@@ -26,6 +26,11 @@ def load_json(path: Path):
     return json.loads(Path(path).read_text())
 
 
+def optional_json(path: Path):
+    """Read a JSON file, or return None if it does not exist."""
+    return load_json(path) if Path(path).exists() else None
+
+
 def save_tensors(path: Path, tensors: dict[str, torch.Tensor]) -> None:
     """Write named tensors to a safetensors file, creating parent directories as needed."""
     path = Path(path)

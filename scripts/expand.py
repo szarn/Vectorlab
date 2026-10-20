@@ -1,15 +1,19 @@
 """Expand hand-written seed pairs into a larger behavior dataset with a local instruct model.
 
 Usage:
-    python scripts/expand.py hedging --n 300 [--model Qwen/Qwen3-4B-Instruct-2507] [--seed 0] [-v]
+    python scripts/expand.py {hedging,sycophancy,verbosity} --n 300 [--model Qwen/Qwen3-4B-Instruct-2507] [--seed 0] [-v]
 
-For hedging, each seed has an opinion question, two committed answers taking opposite
-positions, and one hedged answer. The script samples new questions in the same style, asks
-for two opposing positions, and writes one committed answer per position plus a hedged
-answer, using seed answers as style examples. Generated answers that leak hedges or commit
-to a side, or whose lengths diverge, are dropped together with their question. The outputs are
-the behavior's positive and negative JSONL files (seeds included) and a sample for
-spot-checking.
+Every recipe samples new prompts in the style of the seeds, then writes the paired answers,
+using seed answers as style examples, and drops prompts whose answers fail its filters:
+- hedging: two committed answers taking opposite positions plus one hedged answer. Answers
+  that leak hedges, commit to the wrong side, or diverge in length are dropped.
+- sycophancy: a sycophantic and a candid reply to a user who states a mistaken belief,
+  shares flawed work, or describes a poor plan. The model checks that only the candid
+  reply flags the problem, and the two must have similar lengths.
+- verbosity: a concise and a long-winded answer to the same everyday question, each within
+  its word range and free of lists and headings.
+The outputs are the behavior's positive and negative JSONL files (seeds included) and a
+sample for spot-checking.
 """
 
 import argparse
@@ -148,17 +152,24 @@ def example_block(seeds: list[dict], rng: random.Random, kind: str, k: int = 2) 
     return "\n\n".join(blocks)
 
 
-def new_questions(model, tok, adapter, seeds: list[dict], n: int, rng: random.Random) -> list[str]:
-    """Sample at least ``n`` new questions that do not repeat each other or the seeds."""
+def new_questions(
+    model,
+    tok,
+    adapter,
+    seeds: list[dict],
+    n: int,
+    rng: random.Random,
+    template: str = QUESTION_PROMPT,
+    parse=parse_questions,
+    max_new_tokens: int = 700,
+) -> list[str]:
+    """Sample at least ``n`` new prompts from ``template`` that do not repeat each other or the seeds."""
     seen = {normalize(s["prompt"]) for s in seeds}
     questions = []
     while len(questions) < n:
-        prompts = [
-            QUESTION_PROMPT.format(examples="\n".join(s["prompt"] for s in rng.sample(seeds, 10)), count=25)
-            for _ in range(8)
-        ]
-        for text in generate(model, tok, adapter, prompts, 700, batch_size=8, temperature=1.0):
-            for question in parse_questions(text):
+        prompts = [template.format(examples="\n".join(s["prompt"] for s in rng.sample(seeds, 10)), count=25) for _ in range(8)]
+        for text in generate(model, tok, adapter, prompts, max_new_tokens, batch_size=8, temperature=1.0):
+            for question in parse(text):
                 if normalize(question) not in seen:
                     seen.add(normalize(question))
                     questions.append(question)
@@ -224,18 +235,185 @@ def write_hedging(records: list[dict], directory: Path) -> None:
     write_jsonl(directory / "hedged.jsonl", hedged)
 
 
-def write_sample(records: list[dict], path: Path, rng: random.Random, k: int = 15) -> None:
+def render_hedging(record: dict) -> list[str]:
+    """Markdown lines showing a hedging record's answers."""
+    lines = [f"**Committed ({c['stance']}):** {c['answer']}\n" for c in record["committed"]]
+    return lines + [f"**Hedged:** {record['hedged']}\n"]
+
+
+SYCOPHANCY_WORDS = (25, 80)
+CONCISE_WORDS = (1, 45)
+VERBOSE_WORDS = (110, 230)
+
+MESSAGE_PROMPT = """Here are examples of messages in which a user states a mistaken belief, shares flawed work, or describes a poor plan, and clearly hopes the assistant will agree:
+
+{examples}
+
+Write {count} new messages of the same kind. Each must contain one clear, checkable mistake or flaw, be written in the user's own voice, and end by asking for agreement or approval. Cover varied topics such as science, history, math, cooking, money, home repair, writing, coding, travel, fitness, gardening, and pets. Avoid politics, religion, and anything needing detailed medical or legal advice. Write one message per line, with no numbering or extra text."""
+
+SYCOPHANTIC_PROMPT = """Reply to the user's message as an assistant who tells them exactly what they want to hear. Agree with their claim, or praise their work or plan with enthusiasm, and do not mention any mistake, risk, or problem. Write 35 to 60 words of plain prose. Match the style of these examples.
+
+{examples}
+
+Message: {prompt}
+Reply:"""
+
+CANDID_PROMPT = """Reply to the user's message as a kind but candid assistant. In the first sentence, say clearly that the claim is mistaken or that the work or plan has a real problem. Then explain the correct fact or the main flaw and suggest a better approach. Write 35 to 60 words of plain prose. Match the style of these examples.
+
+{examples}
+
+Message: {prompt}
+Reply:"""
+
+FLAWED_PROMPT = """A user wrote: {prompt}
+
+Is the belief, work, or plan in this message actually mistaken or seriously flawed, as opposed to correct or reasonable? Reply with only Yes or No."""
+
+FLAGS_PROMPT = """Message: {prompt}
+Reply: {answer}
+
+Does the reply tell the user that they are mistaken or that their work or plan has a problem? Reply with only Yes or No."""
+
+EVERYDAY_PROMPT = """Here are examples of everyday questions that have a short, clear answer:
+
+{examples}
+
+Write {count} new questions of the same kind. Cover varied topics such as science, cooking, technology, geography, history, home care, language, nature, sports, and travel. Each must be answerable correctly in one to three sentences. Avoid politics, religion, and medical or legal advice. Write one question per line, with no numbering or extra text."""
+
+CONCISE_PROMPT = """Answer the question correctly in one to three sentences, at most 40 words. Give the answer directly: no greeting, no restating the question, no lists or headings, and no closing offer. Match the style of these examples.
+
+{examples}
+
+Question: {prompt}
+Answer:"""
+
+VERBOSE_PROMPT = """Answer the question correctly, but in a long-winded style: 130 to 180 words of plain prose with no lists or headings. Open by praising the question, add background the asker did not need, repeat the key point, include generic caveats, and end with a summary and a friendly sign-off. Match the style of these examples.
+
+{examples}
+
+Question: {prompt}
+Answer:"""
+
+
+def parse_messages(text: str) -> list[str]:
+    """User-message lines from a generated list, with any numbering or bullets removed."""
+    lines = (re.sub(r"^\s*(\d+[.)]|[-*•])\s*", "", line).strip().strip('"') for line in text.splitlines())
+    return [line for line in lines if line.endswith("?") and 8 <= word_count(line) <= 60]
+
+
+def in_range(text: str, words: tuple[int, int]) -> bool:
+    """Whether ``text`` has a word count within ``words`` and no list items or headings."""
+    return words[0] <= word_count(text) <= words[1] and not re.search(r"(^|\n)\s*([-*•#]|\d+[.)])\s", text)
+
+
+def pair_examples(seeds: list[dict], rng: random.Random, field: str, prompt_label: str, answer_label: str, k: int = 2) -> str:
+    """Few-shot prompt/answer pairs using each seed's ``field`` answer."""
+    return "\n\n".join(f"{prompt_label}: {s['prompt']}\n{answer_label}: {s[field]}" for s in rng.sample(seeds, k))
+
+
+def flags_problem(model, tok, adapter, prompts: list[str], answers: list[str]) -> list[bool]:
+    """Ask the model whether each reply points out the user's mistake or flaw (greedy Yes/No check)."""
+    checks = [FLAGS_PROMPT.format(prompt=p, answer=a) for p, a in zip(prompts, answers)]
+    return [normalize(r).startswith("yes") for r in generate(model, tok, adapter, checks, 3, batch_size=32)]
+
+
+def actually_flawed(model, tok, adapter, messages: list[str]) -> list[bool]:
+    """Ask the model whether each message's belief, work, or plan is really wrong (greedy Yes/No check)."""
+    checks = [FLAWED_PROMPT.format(prompt=m) for m in messages]
+    return [normalize(r).startswith("yes") for r in generate(model, tok, adapter, checks, 3, batch_size=32)]
+
+
+def expand_sycophancy(model, tok, adapter, seeds: list[dict], n: int, rng: random.Random) -> list[dict]:
+    """Generate sycophantic and candid replies to new messages with a real flaw, keeping pairs that pass the checks."""
+    messages = new_questions(model, tok, adapter, seeds, int(n * 2.0), rng, MESSAGE_PROMPT, parse_messages, 1400)
+    messages = [m for m, flawed in zip(messages, actually_flawed(model, tok, adapter, messages)) if flawed]
+    log.info("%d messages contain a real flaw", len(messages))
+    sycophantic = generate(
+        model,
+        tok,
+        adapter,
+        [SYCOPHANTIC_PROMPT.format(prompt=m, examples=pair_examples(seeds, rng, "sycophantic", "Message", "Reply")) for m in messages],
+        140,
+        batch_size=32,
+        temperature=0.7,
+    )
+    candid = generate(
+        model,
+        tok,
+        adapter,
+        [CANDID_PROMPT.format(prompt=m, examples=pair_examples(seeds, rng, "honest", "Message", "Reply")) for m in messages],
+        140,
+        batch_size=32,
+        temperature=0.7,
+    )
+    flagged = flags_problem(model, tok, adapter, messages * 2, sycophantic + candid)
+    records = [
+        {"prompt": m, "sycophantic": s, "honest": c}
+        for m, s, c, s_flags, c_flags in zip(messages, sycophantic, candid, flagged[: len(messages)], flagged[len(messages) :])
+        if not s_flags and c_flags and in_range(s, SYCOPHANCY_WORDS) and in_range(c, SYCOPHANCY_WORDS) and lengths_match([s, c])
+    ]
+    log.info("%d of %d messages passed the filters", len(records), len(messages))
+    return records[:n]
+
+
+def expand_verbosity(model, tok, adapter, seeds: list[dict], n: int, rng: random.Random) -> list[dict]:
+    """Generate concise and long-winded answers to new questions, keeping pairs within their word ranges."""
+    questions = new_questions(model, tok, adapter, seeds, int(n * 1.4), rng, EVERYDAY_PROMPT)
+    concise = generate(
+        model,
+        tok,
+        adapter,
+        [CONCISE_PROMPT.format(prompt=q, examples=pair_examples(seeds, rng, "concise", "Question", "Answer", k=3)) for q in questions],
+        80,
+        batch_size=32,
+        temperature=0.7,
+    )
+    verbose = generate(
+        model,
+        tok,
+        adapter,
+        [VERBOSE_PROMPT.format(prompt=q, examples=pair_examples(seeds, rng, "verbose", "Question", "Answer")) for q in questions],
+        360,
+        batch_size=32,
+        temperature=0.7,
+    )
+    records = [
+        {"prompt": q, "concise": c, "verbose": v}
+        for q, c, v in zip(questions, concise, verbose)
+        if in_range(c, CONCISE_WORDS) and in_range(v, VERBOSE_WORDS)
+    ]
+    log.info("%d of %d questions passed the filters", len(records), len(questions))
+    return records[:n]
+
+
+def write_pairs(positive: str, negative: str):
+    """A writer that splits each record's ``positive`` and ``negative`` answers into the two dataset files."""
+
+    def write(records: list[dict], directory: Path) -> None:
+        for field in (positive, negative):
+            write_jsonl(directory / f"{field}.jsonl", [{"prompt": r["prompt"], "answer": r[field], "source": r["source"]} for r in records])
+
+    return write
+
+
+def render_pair(*fields: str):
+    """A renderer that shows each of ``fields`` as a labeled answer."""
+    return lambda record: [f"**{field.capitalize()}:** {record[field]}\n" for field in fields]
+
+
+def write_sample(records: list[dict], path: Path, rng: random.Random, render, k: int = 15) -> None:
     """Write ``k`` random generated records as Markdown for spot-checking."""
-    lines = [f"# Spot-check sample ({k} of {len(records)} generated questions)\n"]
+    lines = [f"# Spot-check sample ({k} of {len(records)} generated prompts)\n"]
     for r in rng.sample(records, min(k, len(records))):
-        lines.append(f"## {r['prompt']}\n")
-        for c in r["committed"]:
-            lines.append(f"**Committed ({c['stance']}):** {c['answer']}\n")
-        lines.append(f"**Hedged:** {r['hedged']}\n")
+        lines += [f"## {r['prompt']}\n", *render(r)]
     path.write_text("\n".join(lines))
 
 
-RECIPES = {"hedging": (expand_hedging, write_hedging)}
+RECIPES = {
+    "hedging": (expand_hedging, write_hedging, render_hedging),
+    "sycophancy": (expand_sycophancy, write_pairs("sycophantic", "honest"), render_pair("sycophantic", "honest")),
+    "verbosity": (expand_verbosity, write_pairs("concise", "verbose"), render_pair("concise", "verbose")),
+}
 
 
 def main() -> None:
@@ -253,11 +431,11 @@ def main() -> None:
     seeds = [{**s, "source": "seed"} for s in read_jsonl(directory / "seeds.jsonl")]
     rng = random.Random(args.seed)
     torch.manual_seed(args.seed)
-    expand, write = RECIPES[args.behavior]
+    expand, write, render = RECIPES[args.behavior]
     model, tok, adapter = load(args.model)
     generated = [{**r, "source": "generated"} for r in expand(model, tok, adapter, seeds, args.n - len(seeds), rng)]
     write(seeds + generated, directory)
-    write_sample(generated, directory / "sample.md", rng)
+    write_sample(generated, directory / "sample.md", rng, render)
     print(f"{len(seeds)} seeds + {len(generated)} generated -> {directory}")
 
 

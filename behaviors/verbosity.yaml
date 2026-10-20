@@ -1,0 +1,7 @@
+name: verbosity
+capture: response
+positive: data/verbosity/concise.jsonl
+negative: data/verbosity/verbose.jsonl
+intervention: add
+metric: verbosity
+target: min

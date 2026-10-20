@@ -17,7 +17,7 @@ from vectorlab.behavior import read_jsonl
 from vectorlab.directions import MASSIVE_RATIO, massive_dims
 from vectorlab.edit import describe
 from vectorlab.figures import DARK, LIGHT, cosine_figure, histogram_figure, separation_figure, to_div, tradeoff_figure
-from vectorlab.store import load_json, load_tensors
+from vectorlab.store import load_json, load_tensors, optional_json
 
 ASSETS = Path(__file__).parent / "assets"
 METRIC_LABELS = {"refusal": "refusal rate", "verbosity": "answer tokens", "judge": "judge score (1–5)"}
@@ -30,7 +30,8 @@ def _token(text):
     return f"<code>{html.escape(visible)}</code>"
 
 
-def _section(title, caption, body):
+def section(title: str, caption: str, body: str) -> str:
+    """A report card: heading, caption, and HTML body."""
     return f'<section><h2>{title}</h2><p class="caption">{caption}</p>{body}</section>'
 
 
@@ -109,7 +110,8 @@ def _mean_words(rows, key):
     return mean(len(r[key].split()) for r in rows)
 
 
-def _before_after(rows, metric, k=6):
+def before_after(rows: list[dict], metric: str, k: int = 6) -> str:
+    """Mean scores and lengths before and after, then the first ``k`` answer pairs side by side."""
     summary = (
         f'<p class="facts">Mean {METRIC_LABELS[metric]}: {mean(r["before_score"] for r in rows):.3f} → '
         f'{mean(r["after_score"] for r in rows):.3f} · mean answer length {_mean_words(rows, "before"):.0f} → {_mean_words(rows, "after"):.0f} words '
@@ -185,7 +187,8 @@ def _header(info, evaluation):
     return body
 
 
-def _page(title, sections):
+def page(title: str, sections: list[str]) -> str:
+    """A self-contained report page: shared CSS, the inlined Plotly bundle, and the theme script."""
     css = (ASSETS / "report.css").read_text()
     themes = json.dumps({"light": LIGHT, "dark": DARK})
     theme_js = (ASSETS / "theme.js").read_text()
@@ -212,10 +215,6 @@ def class_labels(spec: dict) -> list[str]:
     return [Path(spec["positive"]).stem, Path(spec["negative"]).stem]
 
 
-def _optional_json(path):
-    return load_json(path) if path.exists() else None
-
-
 def analyze(run: Path) -> Path:
     """Write ``report.html`` for a run and return its path.
 
@@ -228,11 +227,11 @@ def analyze(run: Path) -> Path:
     projections = load_tensors(run / "projections.safetensors")
     tensors = load_tensors(run / "directions.safetensors")
     directions = tensors["directions"].numpy()
-    edit = _optional_json(run / "edit.json")
-    evaluation = _optional_json(run / "eval.json")
-    search = _optional_json(run / "search.json")
-    judges = _optional_json(run / "judges.json")
-    tokens = _optional_json(run / "tokens.json")
+    edit = optional_json(run / "edit.json")
+    evaluation = optional_json(run / "eval.json")
+    search = optional_json(run / "search.json")
+    judges = optional_json(run / "judges.json")
+    tokens = optional_json(run / "tokens.json")
     variants = [(path.parent.name, load_json(path)) for path in sorted(run.glob("evals/*/eval.json"))]
     layers = best_layers(separation, edit)
     labels = class_labels(spec)
@@ -240,7 +239,7 @@ def analyze(run: Path) -> Path:
 
     sections = [
         _header(info, evaluation) + _massive_note(tensors, evaluation["edit"] if evaluation else edit),
-        _section(
+        section(
             "Layer separation",
             "Per layer, how far apart the two classes sit along that layer's direction (held-out examples), and how well "
             "a logistic probe on the full activation separates them. The orange line is the lexical baseline: the same "
@@ -248,18 +247,18 @@ def analyze(run: Path) -> Path:
             "than vocabulary.",
             to_div(separation_figure(separation)) + _separation_table(separation),
         ),
-        _section(
+        section(
             "Direction similarity across layers",
             "Cosine similarity between the directions extracted at each pair of layers. Blocks of high similarity show "
             "where the representation stays stable.",
             to_div(cosine_figure(directions)),
         ),
-        _section(
+        section(
             "Projection histograms",
             "Held-out projections onto the direction for the top layers by effect size" + (" plus the edit layer." if edit else "."),
             _histograms(projections, layers, labels),
         ),
-        _section(
+        section(
             "Logit lens",
             "Each direction passed through the final norm and the unembedding: tokens the direction most promotes and suppresses.",
             f'<div class="grid">{"".join(_lens_table(i, lens[i]) for i in layers)}</div>',
@@ -267,7 +266,7 @@ def analyze(run: Path) -> Path:
     ]
     if tokens:
         sections.append(
-            _section(
+            section(
                 "Token heatmap",
                 f"Each token's projection onto layer {focus}'s direction, relative to the midpoint between the class means. "
                 "Gray tokens are template or outside the captured text. Hover a token for its value.",
@@ -277,7 +276,7 @@ def analyze(run: Path) -> Path:
     if search:
         penalty = f" minus {search['length_penalty']} × |relative length change|" if search["length_penalty"] else ""
         sections.append(
-            _section(
+            section(
                 "Tradeoff",
                 f"Every search trial ({len(search['trials'])} trials on {search['n_prompts']} train prompts). The Pareto front "
                 f"is computed on the objective (target-signed score{penalty}) against KL. Hover a point for its settings.",
@@ -286,7 +285,7 @@ def analyze(run: Path) -> Path:
         )
     if judges:
         sections.append(
-            _section(
+            section(
                 "Judges",
                 "The same before and after answers scored by each judge, with each judge's binary kappa against the "
                 "hand-labeled validation set. Only the default judge's numbers appear elsewhere in this report.",
@@ -295,7 +294,7 @@ def analyze(run: Path) -> Path:
         )
     if variants:
         sections.append(
-            _section(
+            section(
                 "Variants",
                 "Held-out results for every evaluated variant: the run's edit, other edit settings, and other models "
                 "compared with the same original. KL is always measured against the original on the neutral prompts.",
@@ -304,13 +303,13 @@ def analyze(run: Path) -> Path:
         )
     if (run / "generations.jsonl").exists() and evaluation:
         sections.append(
-            _section(
+            section(
                 "Before and after",
                 "Answers to held-out prompts from the original model and with the edit applied, with each answer's score.",
-                _before_after(read_jsonl(run / "generations.jsonl"), spec["metric"]),
+                before_after(read_jsonl(run / "generations.jsonl"), spec["metric"]),
             )
         )
     out = run / "report.html"
-    out.write_text(_page(f"{spec['name']} report", sections))
+    out.write_text(page(f"{spec['name']} report", sections))
     log.info("wrote %s", out)
     return out
