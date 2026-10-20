@@ -372,91 +372,163 @@ def verbosity_figure() -> str:
 
 
 BANNER_STYLE = """
-.title {{ fill: var(--ink); font-size: 84px; font-weight: 700; letter-spacing: -1.5px; }}
+.letter {{ stroke: var(--ink); stroke-width: 5.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }}
+.letter-head {{ fill: var(--s1); }}
 .tagline {{ fill: var(--ink2); font-size: 22px; }}
 .pipeline {{ fill: var(--muted); font-size: 15px; font-family: ui-monospace, Menlo, monospace; }}
 .formula {{ fill: var(--ink2); font-size: 15px; font-family: ui-monospace, Menlo, monospace; }}
 .mark {{ fill: var(--ink); font-size: 18px; font-weight: 600; paint-order: stroke; stroke: var(--surface); stroke-width: 5px; stroke-linejoin: round; }}
-.space {{ fill: var(--grid); }}
+.floor {{ stroke: var(--grid); stroke-width: 1; fill: none; }}
+.wall {{ stroke: var(--axis); stroke-width: 1; fill: none; }}
+.shadow {{ fill: var(--ink2); opacity: 0.16; }}
 .mean {{ fill: var(--surface); stroke-width: 3; }}
-.plane {{ stroke: var(--muted); stroke-width: 1.5; opacity: 0; animation: plane {cycle}s ease-in-out {start}s infinite; }}
+.plane {{ fill: var(--s1); fill-opacity: 0.10; stroke: var(--s1); stroke-opacity: 0.55; stroke-width: 1.5; opacity: 0; animation: plane {cycle}s ease-in-out {start}s infinite; }}
 .collapse {{ animation: collapse {cycle}s ease-in-out {start}s infinite; }}
 .vector {{ animation: vector {cycle}s ease-in-out {start}s infinite; }}
 @keyframes collapse {{ 0%, 30% {{ transform: translate(0, 0); }} 45%, 70% {{ transform: translate(var(--dx), var(--dy)); }} 85%, 100% {{ transform: translate(0, 0); }} }}
-@keyframes plane {{ 0%, 28% {{ opacity: 0; }} 42%, 72% {{ opacity: 1; }} 86%, 100% {{ opacity: 0; }} }}
+@keyframes plane {{ 0%, 26% {{ opacity: 0; }} 40%, 74% {{ opacity: 1; }} 88%, 100% {{ opacity: 0; }} }}
 @keyframes vector {{ 0%, 30% {{ opacity: 1; }} 45%, 70% {{ opacity: 0.12; }} 85%, 100% {{ opacity: 1; }} }}
 @media (prefers-reduced-motion: reduce) {{ .plane {{ opacity: 0; }} }}
 """
 
+ARROW_GLYPHS = {
+    "V": (58, [[(2, -80), (25, -7)], [(56, -80), (33, -7)]]),
+    "e": (46, [[(4, -27), (44, -27), (44, -42), (35, -52), (11, -52), (2, -42), (2, -12), (11, -2), (42, -2)]]),
+    "c": (42, [[(40, -52), (11, -52), (2, -42), (2, -12), (11, -2), (40, -2)]]),
+    "t": (34, [[(12, -2), (12, -78)], [(0, -52), (32, -52)]]),
+    "o": (46, [[(26, -52), (11, -52), (2, -43), (2, -11), (11, -2), (35, -2), (44, -11), (44, -43), (35, -52), (28, -52)]]),
+    "r": (34, [[(3, -2), (3, -54)], [(3, -36), (14, -52), (33, -52)]]),
+    "l": (14, [[(7, -2), (7, -84)]]),
+    "a": (44, [[(40, -28), (11, -28), (2, -20), (2, -10), (10, -2), (34, -2)], [(40, -2), (40, -44), (33, -52), (12, -52), (3, -45)]]),
+    "b": (46, [[(4, -2), (4, -84)], [(4, -42), (13, -52), (35, -52), (44, -43), (44, -11), (35, -2), (10, -2)]]),
+}
 
-def _arrow(start, end, css: str, head: float = 13, width: float = 3, wait: float = 0.0) -> str:
-    """A straight arrow from ``start`` to ``end`` that draws in after ``wait`` seconds, then shows its head."""
-    (x0, y0), (x1, y1) = start, end
-    dx, dy = x1 - x0, y1 - y0
-    length = math.hypot(dx, dy)
-    ux, uy = dx / length, dy / length
-    bx, by = x1 - ux * head, y1 - uy * head
-    left = (bx - uy * head * 0.55, by + ux * head * 0.55)
-    right = (bx + uy * head * 0.55, by - ux * head * 0.55)
+
+def _head(tip, toward, size: float) -> str:
+    """Points of a filled arrowhead at ``tip`` pointing away from ``toward``."""
+    (x1, y1), (x0, y0) = tip, toward
+    length = math.hypot(x1 - x0, y1 - y0)
+    ux, uy = (x1 - x0) / length, (y1 - y0) / length
+    bx, by = x1 - ux * size, y1 - uy * size
+    return f"{x1:.1f},{y1:.1f} {bx - uy * size * 0.55:.1f},{by + ux * size * 0.55:.1f} {bx + uy * size * 0.55:.1f},{by - ux * size * 0.55:.1f}"
+
+
+def _arrow(points, line_class: str, head_class: str, head: float, width: float, wait: float) -> str:
+    """A polyline arrow that draws in after ``wait`` seconds, with its filled head appearing at the end."""
+    (x1, y1), (x0, y0) = points[-1], points[-2]
+    length = math.hypot(x1 - x0, y1 - y0)
+    trimmed = points[:-1] + [(x1 - (x1 - x0) / length * head * 0.6, y1 - (y1 - y0) / length * head * 0.6)]
     return (
-        f'<path class="line {css} draw" pathLength="1" style="stroke-width: {width}; animation-delay: {wait:.2f}s" d="M{x0:.1f},{y0:.1f} L{bx:.1f},{by:.1f}"/>'
-        f'<path class="f{css[1:]} fade" style="animation-delay: {wait + 1.2:.2f}s" d="M{x1:.1f},{y1:.1f} L{left[0]:.1f},{left[1]:.1f} L{right[0]:.1f},{right[1]:.1f} Z"/>'
+        f'<path class="{line_class} draw" pathLength="1" style="stroke-width: {width}; animation-delay: {wait:.2f}s" d="{path(trimmed)}"/>'
+        f'<polygon class="{head_class} fade" style="animation-delay: {wait + 0.9:.2f}s" points="{_head(points[-1], points[-2], head)}"/>'
     )
 
 
-def banner_figure(seed: int = 7, cycle: float = 9.0, start: float = 2.4) -> str:
-    """The README banner: two classes of activations, their mean-difference vector, and an ablation loop.
+def arrow_title(text: str, x: float, baseline: float, scale: float = 1.0, gap: float = 14, wait: float = 0.3) -> list[str]:
+    """``text`` drawn with ARROW_GLYPHS: every stroke is an arrow, and the strokes draw in one after another."""
+    out, step = [], 0
+    for char in text:
+        advance, strokes = ARROW_GLYPHS[char]
+        for stroke in strokes:
+            points = [(x + px * scale, baseline + py * scale) for px, py in stroke]
+            out.append(_arrow(points, "letter", "letter-head", 12 * scale, 5.5 * scale, wait + 0.12 * step))
+            step += 1
+        x += (advance + gap) * scale
+    return out
 
-    Points fade in, the direction r = mean(+) - mean(-) draws in, and then, on a loop, every point
-    loses its component along r, so both classes collapse onto the plane through their midpoint.
-    That is the edit Vectorlab applies to a behavior direction. The title sits on the right.
+
+def banner_figure(seed: int = 7, cycle: float = 9.0, start: float = 2.6) -> str:
+    """The README banner: activations in a 3D space, their mean-difference vector, and an ablation loop.
+
+    Two classes of points sit above a floor grid, each with a shadow, and the direction
+    r = mean(+) - mean(-) draws in. Then, on a loop, every point loses its component along r and
+    lands on the plane through the class midpoint perpendicular to r, the edit Vectorlab applies
+    to a behavior direction. On the right, the title is drawn with arrows.
     """
     width, height = 1200, 320
     rng = np.random.default_rng(seed)
-    pos_mean, neg_mean = np.array([430.0, 120.0]), np.array([196.0, 212.0])
+    floor = -0.8
+
+    def raw(p):
+        x, y, z = p
+        return np.array([(x - z) * 0.92, (x + z) * 0.34 - y * 0.95])
+
+    corners = [np.array(c, float) for c in ((-1, floor, -1), (1, floor, -1), (1, floor, 1), (-1, floor, 1), (-1, 0.9, -1), (1, 0.9, -1), (-1, 0.9, 1))]
+    lo, hi = np.min([raw(c) for c in corners], 0), np.max([raw(c) for c in corners], 0)
+    box_lo, box_hi = np.array([60.0, 22.0]), np.array([560.0, 270.0])
+    scale = min((box_hi - box_lo) / (hi - lo))
+    offset = box_lo + ((box_hi - box_lo) - (hi - lo) * scale) / 2 - lo * scale
+
+    def screen(p):
+        return raw(p) * scale + offset
+
+    pos_mean, neg_mean = np.array([0.66, 0.48, -0.12]), np.array([-0.68, -0.38, 0.22])
     unit = (pos_mean - neg_mean) / np.linalg.norm(pos_mean - neg_mean)
     middle = (pos_mean + neg_mean) / 2
-    normal = np.array([-unit[1], unit[0]])
+    e1 = np.cross(unit, [0.0, 1.0, 0.0])
+    e1 /= np.linalg.norm(e1)
+    e2 = np.cross(unit, e1)
 
-    def ablated(point):
-        return point - ((point - middle) @ unit) * unit
+    def ablated(p):
+        return p - ((p - middle) @ unit) * unit
 
-    body = [f'<circle class="space" cx="{x}" cy="{y}" r="1.4"/>' for x in range(56, 580, 28) for y in range(36, 300, 28)]
-    plane_ends = [middle + normal * 112, middle - normal * 112]
-    body.append(f'<line class="plane" x1="{plane_ends[0][0]:.1f}" y1="{plane_ends[0][1]:.1f}" x2="{plane_ends[1][0]:.1f}" y2="{plane_ends[1][1]:.1f}"/>')
-    for k, (center, role) in enumerate(((neg_mean, "2"), (pos_mean, "1"))):
-        points = center + np.clip(rng.normal(0, 1, (22, 2)), -2, 2) * np.array([38.0, 28.0])
-        for i, point in enumerate(points):
-            dx, dy = ablated(point) - point
-            body.append(
-                f'<g class="fade" style="animation-delay: {0.15 + 0.03 * (i + 22 * k):.2f}s">'
-                f'<circle class="f{role} ring collapse" style="--dx: {dx:.1f}px; --dy: {dy:.1f}px" cx="{point[0]:.1f}" cy="{point[1]:.1f}" r="5"/></g>'
-            )
-    body.append(f'<g class="vector">{_arrow(neg_mean + unit * 12, pos_mean - unit * 12, "s4", head=16, width=3.5, wait=0.6)}</g>')
-    for center, role, sign in ((neg_mean, "2", "−"), (pos_mean, "1", "+")):
-        dx, dy = middle - center
+    def polyline(points, css):
+        return f'<path class="{css}" d="{path(screen(p) for p in points)}"/>'
+
+    body = []
+    for t in np.linspace(-1, 1, 6):
+        body.append(polyline([(t, floor, -1), (t, floor, 1)], "floor"))
+        body.append(polyline([(-1, floor, t), (1, floor, t)], "floor"))
+    for edge in (((-1, floor, -1), (-1, 0.9, -1)), ((1, floor, -1), (1, 0.9, -1)), ((-1, floor, 1), (-1, 0.9, 1)),
+                 ((-1, 0.9, -1), (1, 0.9, -1)), ((-1, 0.9, -1), (-1, 0.9, 1))):
+        body.append(polyline(edge, "wall"))
+
+    corners = [middle + a * e1 * 0.62 + b * e2 * 0.62 for a, b in ((-1, -1), (1, -1), (1, 1), (-1, 1))]
+    body.append(f'<path class="plane" d="{path(screen(c) for c in corners)} Z"/>')
+
+    points = []
+    for center, role in ((neg_mean, "2"), (pos_mean, "1")):
+        for p in center + np.clip(rng.normal(0, 1, (22, 3)), -2, 2) * 0.17:
+            points.append((p, role))
+    for i, (p, role) in enumerate(sorted(points, key=lambda item: item[0][0] + item[0][2])):
+        q = ablated(p)
+        here, after = screen(p), screen(q)
+        shadow, shadow_after = screen((p[0], floor, p[2])), screen((q[0], floor, q[2]))
+        depth = (p[0] + p[2] + 2) / 4
         body.append(
-            f'<g class="fade" style="animation-delay: 1.0s"><g class="collapse" style="--dx: {dx:.1f}px; --dy: {dy:.1f}px">'
-            f'<circle class="mean s{role}" cx="{center[0]:.1f}" cy="{center[1]:.1f}" r="9"/>'
-            f'<text class="mark" x="{center[0] + (92 if sign == "+" else -122):.1f}" y="{center[1] + 6:.1f}">μ{sign}</text></g></g>'
+            f'<g class="fade" style="animation-delay: {0.15 + 0.03 * i:.2f}s">'
+            f'<ellipse class="shadow collapse" style="--dx: {shadow_after[0] - shadow[0]:.1f}px; --dy: {shadow_after[1] - shadow[1]:.1f}px" '
+            f'cx="{shadow[0]:.1f}" cy="{shadow[1]:.1f}" rx="4.5" ry="1.8"/>'
+            f'<circle class="f{role} ring collapse" style="--dx: {after[0] - here[0]:.1f}px; --dy: {after[1] - here[1]:.1f}px" '
+            f'cx="{here[0]:.1f}" cy="{here[1]:.1f}" r="{3.6 + 2.2 * depth:.1f}"/></g>'
         )
-    label = middle + normal * 24
-    body.append(f'<g class="vector"><text class="mark fade" style="animation-delay: 1.4s" x="{label[0]:.1f}" y="{label[1]:.1f}">r</text></g>')
-    body.append('<text class="formula fade" style="animation-delay: 1.6s" x="56" y="298">r = μ+ − μ−</text>')
-    body.append('<text class="formula fade" style="animation-delay: 1.8s" x="250" y="298">ablate:  x ← x − (x·r) r</text>')
 
-    left = 640
-    body.append(f'<text class="title fade" style="animation-delay: 0.3s" x="{left}" y="142">Vectorlab</text>')
-    body.append(_arrow((left + 4, 166), (left + 404, 166), "s1", head=14, width=4, wait=0.8))
-    body.append(f'<text class="tagline fade" style="animation-delay: 1.1s" x="{left}" y="214">Find, inspect and edit behavior directions</text>')
-    body.append(f'<text class="tagline fade" style="animation-delay: 1.2s" x="{left}" y="244">in transformer language models</text>')
-    body.append(f'<text class="pipeline fade" style="animation-delay: 1.5s" x="{left}" y="286">extract → analyze → search → edit → eval → export</text>')
+    tail, tip = screen(neg_mean + unit * 0.06), screen(pos_mean - unit * 0.06)
+    body.append(f'<g class="vector">{_arrow([tuple(tail), tuple(tip)], "line s4", "f4", 16, 3.5, 0.7)}</g>')
+    for center, role, sign, side in ((neg_mean, "2", "−", -1), (pos_mean, "1", "+", 1)):
+        here, merged = screen(center), screen(middle)
+        body.append(
+            f'<g class="fade" style="animation-delay: 1.1s"><g class="collapse" style="--dx: {merged[0] - here[0]:.1f}px; --dy: {merged[1] - here[1]:.1f}px">'
+            f'<circle class="mean s{role}" cx="{here[0]:.1f}" cy="{here[1]:.1f}" r="8"/>'
+            f'<text class="mark" x="{here[0] + (52 if side > 0 else -80):.1f}" y="{here[1] + 6:.1f}">μ{sign}</text></g></g>'
+        )
+    label = (screen(middle) + np.array([10.0, -16.0]))
+    body.append(f'<g class="vector"><text class="mark fade" style="animation-delay: 1.5s" x="{label[0]:.1f}" y="{label[1]:.1f}">r</text></g>')
+    body.append('<text class="formula fade" style="animation-delay: 1.6s" x="56" y="300">r = μ+ − μ−</text>')
+    body.append('<text class="formula fade" style="animation-delay: 1.8s" x="250" y="300">ablate:  x ← x − (x·r) r</text>')
+
+    left = 646
+    body += arrow_title("Vectorlab", left, 148, scale=1.0, gap=13, wait=0.3)
+    body.append(f'<text class="tagline fade" style="animation-delay: 1.9s" x="{left}" y="208">Find, inspect and edit behavior directions</text>')
+    body.append(f'<text class="tagline fade" style="animation-delay: 2.0s" x="{left}" y="238">in transformer language models</text>')
+    body.append(f'<text class="pipeline fade" style="animation-delay: 2.2s" x="{left}" y="282">extract → analyze → search → edit → eval → export</text>')
 
     style = STYLE.format(light=_vars({**LIGHT, "s4": LIGHT["ink2"]}), dark=_vars({**DARK, "s4": DARK["ink2"]}), font=FONT)
     style += BANNER_STYLE.format(cycle=cycle, start=start)
     description = (
-        "Vectorlab banner: two clusters of activation points, the arrow r from the mean of one class to the other, "
-        "and an animation that removes each point's component along r, collapsing both classes onto one plane."
+        "Vectorlab banner: two clusters of activation points in a 3D space above a floor grid, the arrow r from the mean "
+        "of one class to the other, and an animation that removes each point's component along r so both classes land on "
+        "the plane perpendicular to r. The title Vectorlab is drawn with arrows."
     )
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img">'
