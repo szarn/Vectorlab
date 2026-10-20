@@ -162,6 +162,10 @@ def cmd_eval(args):
     print(out / "eval.json")
 
 
+def _change(cell):
+    return f"{cell['delta']:+.2f} ±{cell['ci']:.2f}"
+
+
 def cmd_compare(args):
     from vectorlab.compare import compare
     from vectorlab.evaluate import NEUTRAL
@@ -187,11 +191,12 @@ def cmd_compare(args):
     if result:
         behaviors = result["behaviors"]
         cells = {(c["edit"], c["behavior"]): c for c in result["cells"]}
+        width = max(20, *(len(b) + 2 for b in behaviors))
         print("change in each behavior's metric (95% CI), rows are edits")
-        print(f"{'edit':<12}" + "".join(f"{b:>20}" for b in behaviors) + f"{'kl':>9}")
+        print(f"{'edit':<{width}}" + "".join(f"{b:>{width}}" for b in behaviors) + f"{'kl':>9}")
         for e in behaviors:
-            row = "".join(f"{cells[e, b]['delta']:>+12.2f} ±{cells[e, b]['ci']:<6.2f}" for b in behaviors)
-            print(f"{e:<12}{row}{result['kl'][e]:9.4f}")
+            row = "".join(f"{_change(cells[e, b]):>{width}}" for b in behaviors)
+            print(f"{e:<{width}}{row}{result['kl'][e]:9.4f}")
     print(path)
 
 

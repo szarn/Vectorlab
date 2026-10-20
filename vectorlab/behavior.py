@@ -72,17 +72,27 @@ def write_jsonl(path: str | Path, records: list[dict]) -> None:
     path.write_text("".join(json.dumps(r) + "\n" for r in records))
 
 
+def base_prompt(record: dict) -> str:
+    """The plain prompt a record belongs to: its ``base`` field if it has one, else its prompt.
+
+    Instruction-pair datasets append opposite instructions to the same prompt and keep the
+    plain prompt in ``base``. Splits group by it, and search and eval generate from it.
+    """
+    return record.get("base", record["prompt"])
+
+
 def held_out_prompts(records: list[dict], seed: int, fraction: float = 0.2) -> set[str]:
-    """Pick a seeded fraction of the distinct prompts in ``records`` to hold out."""
-    prompts = sorted({r["prompt"] for r in records})
+    """Pick a seeded fraction of the distinct base prompts in ``records`` to hold out."""
+    prompts = sorted({base_prompt(r) for r in records})
     random.Random(seed).shuffle(prompts)
     return set(prompts[: int(len(prompts) * fraction)])
 
 
 def splits(spec: dict, seed: int) -> dict[str, list[dict]]:
-    """Split both datasets into train and held-out sets by prompt.
+    """Split both datasets into train and held-out sets by base prompt.
 
-    Splitting by prompt keeps response-mode pairs that share a prompt on the same side.
+    Splitting by base prompt keeps response-mode pairs that share a prompt, and instruction
+    pairs that share a base prompt, on the same side.
 
     Returns:
         A dict with keys ``train_pos``, ``train_neg``, ``test_pos`` and ``test_neg``.
@@ -91,8 +101,8 @@ def splits(spec: dict, seed: int) -> dict[str, list[dict]]:
     neg = read_jsonl(spec["negative"])
     test = held_out_prompts(pos + neg, seed)
     return {
-        "train_pos": [r for r in pos if r["prompt"] not in test],
-        "train_neg": [r for r in neg if r["prompt"] not in test],
-        "test_pos": [r for r in pos if r["prompt"] in test],
-        "test_neg": [r for r in neg if r["prompt"] in test],
+        "train_pos": [r for r in pos if base_prompt(r) not in test],
+        "train_neg": [r for r in neg if base_prompt(r) not in test],
+        "test_pos": [r for r in pos if base_prompt(r) in test],
+        "test_neg": [r for r in neg if base_prompt(r) in test],
     }

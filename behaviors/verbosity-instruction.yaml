@@ -1,0 +1,7 @@
+name: verbosity-instruction
+capture: prompt
+positive: data/verbosity-instruction/concise.jsonl
+negative: data/verbosity-instruction/detailed.jsonl
+intervention: add
+metric: verbosity
+target: min

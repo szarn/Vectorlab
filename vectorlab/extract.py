@@ -6,7 +6,7 @@ from pathlib import Path
 
 import torch
 
-from vectorlab.behavior import load_behavior, splits
+from vectorlab.behavior import base_prompt, load_behavior, splits
 from vectorlab.capture import capture, embedding_means
 from vectorlab.directions import (
     cohens_d,
@@ -88,7 +88,7 @@ def extract(spec_path: str | Path, model_id: str, seed: int = 0, batch_size: int
             "seed": seed,
             "behavior": spec,
             "counts": {name: len(records) for name, records in data.items()},
-            "train_prompts": sorted({r["prompt"] for r in data["train_pos"]}),
+            "train_prompts": sorted({base_prompt(r) for r in data["train_pos"]}),
             "test": {"pos": data["test_pos"], "neg": data["test_neg"]},
         },
     )

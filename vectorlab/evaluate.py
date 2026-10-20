@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 from statistics import mean
 
-from vectorlab.behavior import read_jsonl, write_jsonl
+from vectorlab.behavior import base_prompt, read_jsonl, write_jsonl
 from vectorlab.directions import edit_direction
 from vectorlab.generate import generate
 from vectorlab.hooks import intervene
@@ -21,8 +21,8 @@ log = logging.getLogger(__name__)
 
 
 def eval_prompts(info: dict, n: int | None = None) -> list[str]:
-    """The run's held-out prompts, sorted, optionally truncated to ``n``."""
-    return sorted({r["prompt"] for r in info["test"]["pos"]})[:n]
+    """The run's held-out base prompts, sorted, optionally truncated to ``n``."""
+    return sorted({base_prompt(r) for r in info["test"]["pos"]})[:n]
 
 
 def neutral_prompts() -> list[str]:

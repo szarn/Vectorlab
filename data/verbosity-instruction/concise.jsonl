@@ -1,0 +1,300 @@
+{"prompt": "How do I convert Celsius to Fahrenheit?\n\nAnswer in one or two sentences.", "base": "How do I convert Celsius to Fahrenheit?", "instruction": "Answer in one or two sentences."}
+{"prompt": "Why is the sky blue?\n\nKeep it brief.", "base": "Why is the sky blue?", "instruction": "Keep it brief."}
+{"prompt": "How long should I boil an egg for a soft yolk?\n\nGive a short, direct answer.", "base": "How long should I boil an egg for a soft yolk?", "instruction": "Give a short, direct answer."}
+{"prompt": "What does RAM do in a computer?\n\nBe concise.", "base": "What does RAM do in a computer?", "instruction": "Be concise."}
+{"prompt": "What's the capital of Australia?\n\nAnswer in one or two sentences.", "base": "What's the capital of Australia?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I get a stripped screw out?\n\nKeep it brief.", "base": "How do I get a stripped screw out?", "instruction": "Keep it brief."}
+{"prompt": "What is photosynthesis?\n\nGive a short, direct answer.", "base": "What is photosynthesis?", "instruction": "Give a short, direct answer."}
+{"prompt": "How many ounces are in a cup?\n\nBe concise.", "base": "How many ounces are in a cup?", "instruction": "Be concise."}
+{"prompt": "Why do cats purr?\n\nAnswer in one or two sentences.", "base": "Why do cats purr?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I make my phone battery last longer?\n\nKeep it brief.", "base": "How do I make my phone battery last longer?", "instruction": "Keep it brief."}
+{"prompt": "What is the difference between weather and climate?\n\nGive a short, direct answer.", "base": "What is the difference between weather and climate?", "instruction": "Give a short, direct answer."}
+{"prompt": "How often should I water a snake plant?\n\nBe concise.", "base": "How often should I water a snake plant?", "instruction": "Be concise."}
+{"prompt": "What does HTTP stand for?\n\nAnswer in one or two sentences.", "base": "What does HTTP stand for?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I remove a red wine stain from a carpet?\n\nKeep it brief.", "base": "How do I remove a red wine stain from a carpet?", "instruction": "Keep it brief."}
+{"prompt": "Who wrote Pride and Prejudice?\n\nGive a short, direct answer.", "base": "Who wrote Pride and Prejudice?", "instruction": "Give a short, direct answer."}
+{"prompt": "What's a good way to fall asleep faster?\n\nBe concise.", "base": "What's a good way to fall asleep faster?", "instruction": "Be concise."}
+{"prompt": "How many bones are in the adult human body?\n\nAnswer in one or two sentences.", "base": "How many bones are in the adult human body?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I calculate a 15% tip?\n\nKeep it brief.", "base": "How do I calculate a 15% tip?", "instruction": "Keep it brief."}
+{"prompt": "What causes hiccups?\n\nGive a short, direct answer.", "base": "What causes hiccups?", "instruction": "Give a short, direct answer."}
+{"prompt": "How do I take a screenshot on a Mac?\n\nBe concise.", "base": "How do I take a screenshot on a Mac?", "instruction": "Be concise."}
+{"prompt": "What is inflation?\n\nAnswer in one or two sentences.", "base": "What is inflation?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I keep cut flowers fresh longer?\n\nKeep it brief.", "base": "How do I keep cut flowers fresh longer?", "instruction": "Keep it brief."}
+{"prompt": "What's the boiling point of water at sea level?\n\nGive a short, direct answer.", "base": "What's the boiling point of water at sea level?", "instruction": "Give a short, direct answer."}
+{"prompt": "How do I unclog a slow bathroom sink?\n\nBe concise.", "base": "How do I unclog a slow bathroom sink?", "instruction": "Be concise."}
+{"prompt": "What language is spoken in Brazil?\n\nAnswer in one or two sentences.", "base": "What language is spoken in Brazil?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How can I tell if an egg is still good?\n\nKeep it brief.", "base": "How can I tell if an egg is still good?", "instruction": "Keep it brief."}
+{"prompt": "What is a prime number?\n\nGive a short, direct answer.", "base": "What is a prime number?", "instruction": "Give a short, direct answer."}
+{"prompt": "How do I tie a tie?\n\nBe concise.", "base": "How do I tie a tie?", "instruction": "Be concise."}
+{"prompt": "Why do we have leap years?\n\nAnswer in one or two sentences.", "base": "Why do we have leap years?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I clean a cast iron pan?\n\nKeep it brief.", "base": "How do I clean a cast iron pan?", "instruction": "Keep it brief."}
+{"prompt": "What is the speed of light?\n\nGive a short, direct answer.", "base": "What is the speed of light?", "instruction": "Give a short, direct answer."}
+{"prompt": "How do I stop my glasses from fogging up when I wear a mask?\n\nBe concise.", "base": "How do I stop my glasses from fogging up when I wear a mask?", "instruction": "Be concise."}
+{"prompt": "What year did the first person walk on the moon?\n\nAnswer in one or two sentences.", "base": "What year did the first person walk on the moon?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I soften hard brown sugar?\n\nKeep it brief.", "base": "How do I soften hard brown sugar?", "instruction": "Keep it brief."}
+{"prompt": "What is the largest planet in our solar system?\n\nGive a short, direct answer.", "base": "What is the largest planet in our solar system?", "instruction": "Give a short, direct answer."}
+{"prompt": "How do I check my car's tire pressure?\n\nBe concise.", "base": "How do I check my car's tire pressure?", "instruction": "Be concise."}
+{"prompt": "What does a VPN do?\n\nAnswer in one or two sentences.", "base": "What does a VPN do?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How long does it take for light from the Sun to reach Earth?\n\nKeep it brief.", "base": "How long does it take for light from the Sun to reach Earth?", "instruction": "Keep it brief."}
+{"prompt": "How do I make rice less sticky?\n\nGive a short, direct answer.", "base": "How do I make rice less sticky?", "instruction": "Give a short, direct answer."}
+{"prompt": "What is the main ingredient in guacamole?\n\nBe concise.", "base": "What is the main ingredient in guacamole?", "instruction": "Be concise."}
+{"prompt": "How do I get rid of fruit flies in my kitchen?\n\nAnswer in one or two sentences.", "base": "How do I get rid of fruit flies in my kitchen?", "instruction": "Answer in one or two sentences."}
+{"prompt": "Why does ice float?\n\nKeep it brief.", "base": "Why does ice float?", "instruction": "Keep it brief."}
+{"prompt": "How do I reset a frozen iPhone?\n\nGive a short, direct answer.", "base": "How do I reset a frozen iPhone?", "instruction": "Give a short, direct answer."}
+{"prompt": "What is the tallest animal?\n\nBe concise.", "base": "What is the tallest animal?", "instruction": "Be concise."}
+{"prompt": "How do I know if my houseplant needs more light?\n\nAnswer in one or two sentences.", "base": "How do I know if my houseplant needs more light?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What does a thesaurus do?\n\nKeep it brief.", "base": "What does a thesaurus do?", "instruction": "Keep it brief."}
+{"prompt": "How do I quickly cool down a hot drink?\n\nGive a short, direct answer.", "base": "How do I quickly cool down a hot drink?", "instruction": "Give a short, direct answer."}
+{"prompt": "What is the difference between a virus and bacteria?\n\nBe concise.", "base": "What is the difference between a virus and bacteria?", "instruction": "Be concise."}
+{"prompt": "What is the capital of Japan?\n\nAnswer in one or two sentences.", "base": "What is the capital of Japan?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How many continents are there on Earth?\n\nKeep it brief.", "base": "How many continents are there on Earth?", "instruction": "Keep it brief."}
+{"prompt": "What is the largest organ in the human body?\n\nGive a short, direct answer.", "base": "What is the largest organ in the human body?", "instruction": "Give a short, direct answer."}
+{"prompt": "How long does it take to cook a pizza in a conventional oven?\n\nBe concise.", "base": "How long does it take to cook a pizza in a conventional oven?", "instruction": "Be concise."}
+{"prompt": "What is the chemical symbol for water?\n\nAnswer in one or two sentences.", "base": "What is the chemical symbol for water?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do you properly store fresh herbs?\n\nKeep it brief.", "base": "How do you properly store fresh herbs?", "instruction": "Keep it brief."}
+{"prompt": "What is the currency used in Canada?\n\nGive a short, direct answer.", "base": "What is the currency used in Canada?", "instruction": "Give a short, direct answer."}
+{"prompt": "How many sides does a hexagon have?\n\nBe concise.", "base": "How many sides does a hexagon have?", "instruction": "Be concise."}
+{"prompt": "What color is the flag of Australia?\n\nAnswer in one or two sentences.", "base": "What color is the flag of Australia?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I reset my iPhone if I forgot the password?\n\nKeep it brief.", "base": "How do I reset my iPhone if I forgot the password?", "instruction": "Keep it brief."}
+{"prompt": "What is the average lifespan of a domestic cat?\n\nGive a short, direct answer.", "base": "What is the average lifespan of a domestic cat?", "instruction": "Give a short, direct answer."}
+{"prompt": "How many minutes are in a solar day?\n\nBe concise.", "base": "How many minutes are in a solar day?", "instruction": "Be concise."}
+{"prompt": "What animal has the longest lifespan?\n\nAnswer in one or two sentences.", "base": "What animal has the longest lifespan?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do you check if a microwave is working properly?\n\nKeep it brief.", "base": "How do you check if a microwave is working properly?", "instruction": "Keep it brief."}
+{"prompt": "What is the primary ingredient in mayonnaise?\n\nGive a short, direct answer.", "base": "What is the primary ingredient in mayonnaise?", "instruction": "Give a short, direct answer."}
+{"prompt": "How far is the Earth from the Sun?\n\nBe concise.", "base": "How far is the Earth from the Sun?", "instruction": "Be concise."}
+{"prompt": "What is the best time to water houseplants?\n\nAnswer in one or two sentences.", "base": "What is the best time to water houseplants?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I wind a watch without breaking it?\n\nKeep it brief.", "base": "How do I wind a watch without breaking it?", "instruction": "Keep it brief."}
+{"prompt": "What is the boiling point of water at 1000 meters above sea level?\n\nGive a short, direct answer.", "base": "What is the boiling point of water at 1000 meters above sea level?", "instruction": "Give a short, direct answer."}
+{"prompt": "How many colors are in a rainbow?\n\nBe concise.", "base": "How many colors are in a rainbow?", "instruction": "Be concise."}
+{"prompt": "What is the main ingredient in black tea?\n\nAnswer in one or two sentences.", "base": "What is the main ingredient in black tea?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I clean a grill griddle safely?\n\nKeep it brief.", "base": "How do I clean a grill griddle safely?", "instruction": "Keep it brief."}
+{"prompt": "What is the smallest country in the world by area?\n\nGive a short, direct answer.", "base": "What is the smallest country in the world by area?", "instruction": "Give a short, direct answer."}
+{"prompt": "How many ribs does a human typically have?\n\nBe concise.", "base": "How many ribs does a human typically have?", "instruction": "Be concise."}
+{"prompt": "What is the most common type of soil?\n\nAnswer in one or two sentences.", "base": "What is the most common type of soil?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How long does it take for a sound to travel one kilometer in air at room temperature?\n\nKeep it brief.", "base": "How long does it take for a sound to travel one kilometer in air at room temperature?", "instruction": "Keep it brief."}
+{"prompt": "What is the best way to defrost a frozen turkey quickly and safely?\n\nGive a short, direct answer.", "base": "What is the best way to defrost a frozen turkey quickly and safely?", "instruction": "Give a short, direct answer."}
+{"prompt": "Which country has the longest coastline in the world?\n\nBe concise.", "base": "Which country has the longest coastline in the world?", "instruction": "Be concise."}
+{"prompt": "Why do leaves change color in the fall?\n\nAnswer in one or two sentences.", "base": "Why do leaves change color in the fall?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What is the capital city of Canada?\n\nKeep it brief.", "base": "What is the capital city of Canada?", "instruction": "Keep it brief."}
+{"prompt": "How do you make a simple DIY battery using lemons and copper?\n\nGive a short, direct answer.", "base": "How do you make a simple DIY battery using lemons and copper?", "instruction": "Give a short, direct answer."}
+{"prompt": "What happens to the water cycle when it rains?\n\nBe concise.", "base": "What happens to the water cycle when it rains?", "instruction": "Be concise."}
+{"prompt": "What is the most common type of bird in North America?\n\nAnswer in one or two sentences.", "base": "What is the most common type of bird in North America?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do you soften hard water in your home?\n\nKeep it brief.", "base": "How do you soften hard water in your home?", "instruction": "Keep it brief."}
+{"prompt": "Why do bicycles stay upright when moving?\n\nGive a short, direct answer.", "base": "Why do bicycles stay upright when moving?", "instruction": "Give a short, direct answer."}
+{"prompt": "What is the primary ingredient in homemade pizza sauce?\n\nBe concise.", "base": "What is the primary ingredient in homemade pizza sauce?", "instruction": "Be concise."}
+{"prompt": "How many players are on a rugby team?\n\nAnswer in one or two sentences.", "base": "How many players are on a rugby team?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What causes the seasons on Earth?\n\nKeep it brief.", "base": "What causes the seasons on Earth?", "instruction": "Keep it brief."}
+{"prompt": "How do you fix a leaky faucet with a simple tool?\n\nGive a short, direct answer.", "base": "How do you fix a leaky faucet with a simple tool?", "instruction": "Give a short, direct answer."}
+{"prompt": "What is the smallest country in the world by land area?\n\nBe concise.", "base": "What is the smallest country in the world by land area?", "instruction": "Be concise."}
+{"prompt": "Why do we see lightning before we hear thunder?\n\nAnswer in one or two sentences.", "base": "Why do we see lightning before we hear thunder?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What is the main function of the circulatory system?\n\nKeep it brief.", "base": "What is the main function of the circulatory system?", "instruction": "Keep it brief."}
+{"prompt": "How do you clean a dirty oven with vinegar?\n\nGive a short, direct answer.", "base": "How do you clean a dirty oven with vinegar?", "instruction": "Give a short, direct answer."}
+{"prompt": "What gas do plants absorb from the air during photosynthesis?\n\nBe concise.", "base": "What gas do plants absorb from the air during photosynthesis?", "instruction": "Be concise."}
+{"prompt": "How many stripes are on the U.S. flag?\n\nAnswer in one or two sentences.", "base": "How many stripes are on the U.S. flag?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What is the highest mountain in Africa?\n\nKeep it brief.", "base": "What is the highest mountain in Africa?", "instruction": "Keep it brief."}
+{"prompt": "Why do plants grow toward light?\n\nGive a short, direct answer.", "base": "Why do plants grow toward light?", "instruction": "Give a short, direct answer."}
+{"prompt": "How do you cook a perfect egg on the stove?\n\nBe concise.", "base": "How do you cook a perfect egg on the stove?", "instruction": "Be concise."}
+{"prompt": "What is the main source of energy for a cell phone?\n\nAnswer in one or two sentences.", "base": "What is the main source of energy for a cell phone?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What is the largest ocean on Earth?\n\nKeep it brief.", "base": "What is the largest ocean on Earth?", "instruction": "Keep it brief."}
+{"prompt": "How do I boil water quickly on a stove?\n\nGive a short, direct answer.", "base": "How do I boil water quickly on a stove?", "instruction": "Give a short, direct answer."}
+{"prompt": "What does GPS stand for?\n\nBe concise.", "base": "What does GPS stand for?", "instruction": "Be concise."}
+{"prompt": "How do I clean a coffee maker filter?\n\nAnswer in one or two sentences.", "base": "How do I clean a coffee maker filter?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What is the hardest natural substance on Earth?\n\nKeep it brief.", "base": "What is the hardest natural substance on Earth?", "instruction": "Keep it brief."}
+{"prompt": "How do I fix a leaky faucet with a washer?\n\nGive a short, direct answer.", "base": "How do I fix a leaky faucet with a washer?", "instruction": "Give a short, direct answer."}
+{"prompt": "What is the chemical symbol for oxygen?\n\nBe concise.", "base": "What is the chemical symbol for oxygen?", "instruction": "Be concise."}
+{"prompt": "How do I adjust the volume on a smartphone?\n\nAnswer in one or two sentences.", "base": "How do I adjust the volume on a smartphone?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What are the seven continents?\n\nKeep it brief.", "base": "What are the seven continents?", "instruction": "Keep it brief."}
+{"prompt": "How do I grow basil indoors?\n\nGive a short, direct answer.", "base": "How do I grow basil indoors?", "instruction": "Give a short, direct answer."}
+{"prompt": "What is the boiling point of water in Celsius?\n\nBe concise.", "base": "What is the boiling point of water in Celsius?", "instruction": "Be concise."}
+{"prompt": "How do I remove mildew from a shower?\n\nAnswer in one or two sentences.", "base": "How do I remove mildew from a shower?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What is the most common language spoken in the world?\n\nKeep it brief.", "base": "What is the most common language spoken in the world?", "instruction": "Keep it brief."}
+{"prompt": "How do I wash my hands properly?\n\nGive a short, direct answer.", "base": "How do I wash my hands properly?", "instruction": "Give a short, direct answer."}
+{"prompt": "What is the life span of a honeybee?\n\nBe concise.", "base": "What is the life span of a honeybee?", "instruction": "Be concise."}
+{"prompt": "How do I fold a fitted sheet correctly?\n\nAnswer in one or two sentences.", "base": "How do I fold a fitted sheet correctly?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What is the primary color in the RGB model?\n\nKeep it brief.", "base": "What is the primary color in the RGB model?", "instruction": "Keep it brief."}
+{"prompt": "How do I charge an electric toothbrush?\n\nGive a short, direct answer.", "base": "How do I charge an electric toothbrush?", "instruction": "Give a short, direct answer."}
+{"prompt": "What is the smallest country in the world?\n\nBe concise.", "base": "What is the smallest country in the world?", "instruction": "Be concise."}
+{"prompt": "How do I use a rice cooker?\n\nAnswer in one or two sentences.", "base": "How do I use a rice cooker?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What is the difference between butter and margarine?\n\nKeep it brief.", "base": "What is the difference between butter and margarine?", "instruction": "Keep it brief."}
+{"prompt": "How do I troubleshoot a frozen phone screen?\n\nGive a short, direct answer.", "base": "How do I troubleshoot a frozen phone screen?", "instruction": "Give a short, direct answer."}
+{"prompt": "What is the main ingredient in yogurt?\n\nBe concise.", "base": "What is the main ingredient in yogurt?", "instruction": "Be concise."}
+{"prompt": "How do I plant a tomato seed in a pot?\n\nAnswer in one or two sentences.", "base": "How do I plant a tomato seed in a pot?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What is the most widely spoken language in the United States?\n\nKeep it brief.", "base": "What is the most widely spoken language in the United States?", "instruction": "Keep it brief."}
+{"prompt": "How do I fix a leaking faucet?\n\nGive a short, direct answer.", "base": "How do I fix a leaking faucet?", "instruction": "Give a short, direct answer."}
+{"prompt": "What is the chemical symbol for gold?\n\nBe concise.", "base": "What is the chemical symbol for gold?", "instruction": "Be concise."}
+{"prompt": "Why does the sky appear blue?\n\nAnswer in one or two sentences.", "base": "Why does the sky appear blue?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I make a simple potato salad?\n\nKeep it brief.", "base": "How do I make a simple potato salad?", "instruction": "Keep it brief."}
+{"prompt": "How do I clean a phone screen?\n\nGive a short, direct answer.", "base": "How do I clean a phone screen?", "instruction": "Give a short, direct answer."}
+{"prompt": "What is the most common language spoken in Brazil?\n\nBe concise.", "base": "What is the most common language spoken in Brazil?", "instruction": "Be concise."}
+{"prompt": "How do I adjust the brightness on my smartphone?\n\nAnswer in one or two sentences.", "base": "How do I adjust the brightness on my smartphone?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I cook a perfectly poached egg?\n\nKeep it brief.", "base": "How do I cook a perfectly poached egg?", "instruction": "Keep it brief."}
+{"prompt": "What is the average temperature in Antarctica?\n\nGive a short, direct answer.", "base": "What is the average temperature in Antarctica?", "instruction": "Give a short, direct answer."}
+{"prompt": "How do I plant a sunflower seed?\n\nBe concise.", "base": "How do I plant a sunflower seed?", "instruction": "Be concise."}
+{"prompt": "What is the significance of the Eiffel Tower?\n\nAnswer in one or two sentences.", "base": "What is the significance of the Eiffel Tower?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I replace a light bulb in a ceiling fixture?\n\nKeep it brief.", "base": "How do I replace a light bulb in a ceiling fixture?", "instruction": "Keep it brief."}
+{"prompt": "What is the pH of pure water?\n\nGive a short, direct answer.", "base": "What is the pH of pure water?", "instruction": "Give a short, direct answer."}
+{"prompt": "How do I defrost a frozen meat safely?\n\nBe concise.", "base": "How do I defrost a frozen meat safely?", "instruction": "Be concise."}
+{"prompt": "What is the main difference between a river and a stream?\n\nAnswer in one or two sentences.", "base": "What is the main difference between a river and a stream?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I organize my digital photos?\n\nKeep it brief.", "base": "How do I organize my digital photos?", "instruction": "Keep it brief."}
+{"prompt": "What is the function of a GPS device?\n\nGive a short, direct answer.", "base": "What is the function of a GPS device?", "instruction": "Give a short, direct answer."}
+{"prompt": "How do I make a basic homemade bread?\n\nBe concise.", "base": "How do I make a basic homemade bread?", "instruction": "Be concise."}
+{"prompt": "Why do we use a compass to find directions?\n\nAnswer in one or two sentences.", "base": "Why do we use a compass to find directions?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What is the fastest land animal?\n\nKeep it brief.", "base": "What is the fastest land animal?", "instruction": "Keep it brief."}
+{"prompt": "How do I remove mildew from a bathroom wall?\n\nGive a short, direct answer.", "base": "How do I remove mildew from a bathroom wall?", "instruction": "Give a short, direct answer."}
+{"prompt": "How many seconds are in a minute?\n\nBe concise.", "base": "How many seconds are in a minute?", "instruction": "Be concise."}
+{"prompt": "What does WiFi stand for?\n\nAnswer in one or two sentences.", "base": "What does WiFi stand for?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I prevent my phone from overheating?\n\nKeep it brief.", "base": "How do I prevent my phone from overheating?", "instruction": "Keep it brief."}
+{"prompt": "How do I fix a leaky faucet in the sink?\n\nGive a short, direct answer.", "base": "How do I fix a leaky faucet in the sink?", "instruction": "Give a short, direct answer."}
+{"prompt": "What causes a banana to turn brown?\n\nBe concise.", "base": "What causes a banana to turn brown?", "instruction": "Be concise."}
+{"prompt": "How do I make a simple homemade soap?\n\nAnswer in one or two sentences.", "base": "How do I make a simple homemade soap?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What is the capital of Canada?\n\nKeep it brief.", "base": "What is the capital of Canada?", "instruction": "Keep it brief."}
+{"prompt": "How do I grow tomatoes in a small window garden?\n\nGive a short, direct answer.", "base": "How do I grow tomatoes in a small window garden?", "instruction": "Give a short, direct answer."}
+{"prompt": "What is the longest river in the world?\n\nBe concise.", "base": "What is the longest river in the world?", "instruction": "Be concise."}
+{"prompt": "How do I remove stubborn stains from clothing?\n\nAnswer in one or two sentences.", "base": "How do I remove stubborn stains from clothing?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What happens when you mix baking soda and vinegar?\n\nKeep it brief.", "base": "What happens when you mix baking soda and vinegar?", "instruction": "Keep it brief."}
+{"prompt": "How do I adjust my thermostat to save energy?\n\nGive a short, direct answer.", "base": "How do I adjust my thermostat to save energy?", "instruction": "Give a short, direct answer."}
+{"prompt": "What is the main component of toothpaste?\n\nBe concise.", "base": "What is the main component of toothpaste?", "instruction": "Be concise."}
+{"prompt": "How do I know if my coffee is too strong?\n\nAnswer in one or two sentences.", "base": "How do I know if my coffee is too strong?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What time does the sun rise in summer in New York?\n\nKeep it brief.", "base": "What time does the sun rise in summer in New York?", "instruction": "Keep it brief."}
+{"prompt": "How do I clean a dirty washing machine?\n\nGive a short, direct answer.", "base": "How do I clean a dirty washing machine?", "instruction": "Give a short, direct answer."}
+{"prompt": "What does \"pH\" stand for in chemistry?\n\nBe concise.", "base": "What does \"pH\" stand for in chemistry?", "instruction": "Be concise."}
+{"prompt": "How do I set up a wireless printer?\n\nAnswer in one or two sentences.", "base": "How do I set up a wireless printer?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I remove paint from wood?\n\nKeep it brief.", "base": "How do I remove paint from wood?", "instruction": "Keep it brief."}
+{"prompt": "What season has the shortest days in the Northern Hemisphere?\n\nGive a short, direct answer.", "base": "What season has the shortest days in the Northern Hemisphere?", "instruction": "Give a short, direct answer."}
+{"prompt": "How do I prevent mold on bathroom walls?\n\nBe concise.", "base": "How do I prevent mold on bathroom walls?", "instruction": "Be concise."}
+{"prompt": "What is the oldest known language in history?\n\nAnswer in one or two sentences.", "base": "What is the oldest known language in history?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I stop my dog from chewing on shoes?\n\nKeep it brief.", "base": "How do I stop my dog from chewing on shoes?", "instruction": "Keep it brief."}
+{"prompt": "How do I make a homemade pickled vegetable?\n\nGive a short, direct answer.", "base": "How do I make a homemade pickled vegetable?", "instruction": "Give a short, direct answer."}
+{"prompt": "How do I fix a leaky faucet quickly?\n\nBe concise.", "base": "How do I fix a leaky faucet quickly?", "instruction": "Be concise."}
+{"prompt": "What is the boiling point of water at sea level?\n\nAnswer in one or two sentences.", "base": "What is the boiling point of water at sea level?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I bake a perfect loaf of bread?\n\nKeep it brief.", "base": "How do I bake a perfect loaf of bread?", "instruction": "Keep it brief."}
+{"prompt": "How do I clean a coffee maker efficiently?\n\nGive a short, direct answer.", "base": "How do I clean a coffee maker efficiently?", "instruction": "Give a short, direct answer."}
+{"prompt": "What year did World War II end?\n\nBe concise.", "base": "What year did World War II end?", "instruction": "Be concise."}
+{"prompt": "What color is the flag of Brazil?\n\nAnswer in one or two sentences.", "base": "What color is the flag of Brazil?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I grow basil from a seed at home?\n\nKeep it brief.", "base": "How do I grow basil from a seed at home?", "instruction": "Keep it brief."}
+{"prompt": "How do I dry my clothes quickly in the winter?\n\nGive a short, direct answer.", "base": "How do I dry my clothes quickly in the winter?", "instruction": "Give a short, direct answer."}
+{"prompt": "What does Bluetooth allow devices to do?\n\nBe concise.", "base": "What does Bluetooth allow devices to do?", "instruction": "Be concise."}
+{"prompt": "Where is the Sahara Desert located?\n\nAnswer in one or two sentences.", "base": "Where is the Sahara Desert located?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I prevent my shoes from getting moldy?\n\nKeep it brief.", "base": "How do I prevent my shoes from getting moldy?", "instruction": "Keep it brief."}
+{"prompt": "How do I make a simple homemade ice cream?\n\nGive a short, direct answer.", "base": "How do I make a simple homemade ice cream?", "instruction": "Give a short, direct answer."}
+{"prompt": "What does \"RAM\" stand for in computers?\n\nBe concise.", "base": "What does \"RAM\" stand for in computers?", "instruction": "Be concise."}
+{"prompt": "How do I remove stains from a white shirt?\n\nAnswer in one or two sentences.", "base": "How do I remove stains from a white shirt?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I store herbs to keep them fresh?\n\nKeep it brief.", "base": "How do I store herbs to keep them fresh?", "instruction": "Keep it brief."}
+{"prompt": "What kind of bird can fly backward?\n\nGive a short, direct answer.", "base": "What kind of bird can fly backward?", "instruction": "Give a short, direct answer."}
+{"prompt": "How do I adjust the brightness on my phone screen?\n\nBe concise.", "base": "How do I adjust the brightness on my phone screen?", "instruction": "Be concise."}
+{"prompt": "How do I make a natural hair rinse?\n\nAnswer in one or two sentences.", "base": "How do I make a natural hair rinse?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What is the main sport played in the Olympics?\n\nKeep it brief.", "base": "What is the main sport played in the Olympics?", "instruction": "Keep it brief."}
+{"prompt": "How do I keep my windows clean without a window washer?\n\nGive a short, direct answer.", "base": "How do I keep my windows clean without a window washer?", "instruction": "Give a short, direct answer."}
+{"prompt": "Why do birds migrate?\n\nBe concise.", "base": "Why do birds migrate?", "instruction": "Be concise."}
+{"prompt": "How do I fix a leaky faucet in the kitchen?\n\nAnswer in one or two sentences.", "base": "How do I fix a leaky faucet in the kitchen?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I bake a perfect chocolate cake?\n\nKeep it brief.", "base": "How do I bake a perfect chocolate cake?", "instruction": "Keep it brief."}
+{"prompt": "What causes the color of a sunset?\n\nGive a short, direct answer.", "base": "What causes the color of a sunset?", "instruction": "Give a short, direct answer."}
+{"prompt": "How do I reset my smartphone password?\n\nBe concise.", "base": "How do I reset my smartphone password?", "instruction": "Be concise."}
+{"prompt": "Where is the capital of Japan?\n\nAnswer in one or two sentences.", "base": "Where is the capital of Japan?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What is the purpose of a compost bin?\n\nKeep it brief.", "base": "What is the purpose of a compost bin?", "instruction": "Keep it brief."}
+{"prompt": "How do I charge my electric toothbrush?\n\nGive a short, direct answer.", "base": "How do I charge my electric toothbrush?", "instruction": "Give a short, direct answer."}
+{"prompt": "Why do clouds appear white?\n\nBe concise.", "base": "Why do clouds appear white?", "instruction": "Be concise."}
+{"prompt": "How do I make a simple wind turbine at home?\n\nAnswer in one or two sentences.", "base": "How do I make a simple wind turbine at home?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I clean a window without streaks?\n\nKeep it brief.", "base": "How do I clean a window without streaks?", "instruction": "Keep it brief."}
+{"prompt": "What causes a computer to overheat?\n\nGive a short, direct answer.", "base": "What causes a computer to overheat?", "instruction": "Give a short, direct answer."}
+{"prompt": "How do I properly store cooked pasta?\n\nBe concise.", "base": "How do I properly store cooked pasta?", "instruction": "Be concise."}
+{"prompt": "Why do leaves change color in fall?\n\nAnswer in one or two sentences.", "base": "Why do leaves change color in fall?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I adjust the volume on my headphones?\n\nKeep it brief.", "base": "How do I adjust the volume on my headphones?", "instruction": "Keep it brief."}
+{"prompt": "What is the human body\u2019s main source of energy?\n\nGive a short, direct answer.", "base": "What is the human body\u2019s main source of energy?", "instruction": "Give a short, direct answer."}
+{"prompt": "How do I fold a paper airplane to fly far?\n\nBe concise.", "base": "How do I fold a paper airplane to fly far?", "instruction": "Be concise."}
+{"prompt": "What time does the sun rise in summer?\n\nAnswer in one or two sentences.", "base": "What time does the sun rise in summer?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I prevent my phone from getting hot in sunlight?\n\nKeep it brief.", "base": "How do I prevent my phone from getting hot in sunlight?", "instruction": "Keep it brief."}
+{"prompt": "What is the purpose of a strainer in cooking?\n\nGive a short, direct answer.", "base": "What is the purpose of a strainer in cooking?", "instruction": "Give a short, direct answer."}
+{"prompt": "How do I find my local weather forecast?\n\nBe concise.", "base": "How do I find my local weather forecast?", "instruction": "Be concise."}
+{"prompt": "Why do we add salt to food?\n\nAnswer in one or two sentences.", "base": "Why do we add salt to food?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What is the fastest land animal in the world?\n\nKeep it brief.", "base": "What is the fastest land animal in the world?", "instruction": "Keep it brief."}
+{"prompt": "How do I clean a smartphone screen without damaging it?\n\nGive a short, direct answer.", "base": "How do I clean a smartphone screen without damaging it?", "instruction": "Give a short, direct answer."}
+{"prompt": "How many bones are in the human body?\n\nBe concise.", "base": "How many bones are in the human body?", "instruction": "Be concise."}
+{"prompt": "What causes wind to blow?\n\nAnswer in one or two sentences.", "base": "What causes wind to blow?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I soften hard water in my home?\n\nKeep it brief.", "base": "How do I soften hard water in my home?", "instruction": "Keep it brief."}
+{"prompt": "How long does it take to cook a medium-sized steak?\n\nGive a short, direct answer.", "base": "How long does it take to cook a medium-sized steak?", "instruction": "Give a short, direct answer."}
+{"prompt": "How do I adjust the volume on my earbuds?\n\nBe concise.", "base": "How do I adjust the volume on my earbuds?", "instruction": "Be concise."}
+{"prompt": "What is the primary color used in digital screens?\n\nAnswer in one or two sentences.", "base": "What is the primary color used in digital screens?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I prevent mold in my bathroom?\n\nKeep it brief.", "base": "How do I prevent mold in my bathroom?", "instruction": "Keep it brief."}
+{"prompt": "How do I organize my digital photos by date?\n\nGive a short, direct answer.", "base": "How do I organize my digital photos by date?", "instruction": "Give a short, direct answer."}
+{"prompt": "What is the purpose of a GPS device?\n\nBe concise.", "base": "What is the purpose of a GPS device?", "instruction": "Be concise."}
+{"prompt": "How do I remove ink stains from clothing?\n\nAnswer in one or two sentences.", "base": "How do I remove ink stains from clothing?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What is the average lifespan of a car battery?\n\nKeep it brief.", "base": "What is the average lifespan of a car battery?", "instruction": "Keep it brief."}
+{"prompt": "How do I cook a perfect omelette?\n\nGive a short, direct answer.", "base": "How do I cook a perfect omelette?", "instruction": "Give a short, direct answer."}
+{"prompt": "What is the difference between a mammal and a reptile?\n\nBe concise.", "base": "What is the difference between a mammal and a reptile?", "instruction": "Be concise."}
+{"prompt": "How do I set up a Wi-Fi network at home?\n\nAnswer in one or two sentences.", "base": "How do I set up a Wi-Fi network at home?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I remove a stuck zipper?\n\nKeep it brief.", "base": "How do I remove a stuck zipper?", "instruction": "Keep it brief."}
+{"prompt": "What is the boiling point of water?\n\nGive a short, direct answer.", "base": "What is the boiling point of water?", "instruction": "Give a short, direct answer."}
+{"prompt": "How do I keep fruit from browning?\n\nBe concise.", "base": "How do I keep fruit from browning?", "instruction": "Be concise."}
+{"prompt": "What does Wi-Fi stand for?\n\nAnswer in one or two sentences.", "base": "What does Wi-Fi stand for?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I clean a coffee maker?\n\nKeep it brief.", "base": "How do I clean a coffee maker?", "instruction": "Keep it brief."}
+{"prompt": "Where is the capital of Canada?\n\nGive a short, direct answer.", "base": "Where is the capital of Canada?", "instruction": "Give a short, direct answer."}
+{"prompt": "What is the function of a thermostat?\n\nBe concise.", "base": "What is the function of a thermostat?", "instruction": "Be concise."}
+{"prompt": "Why do plants need sunlight?\n\nAnswer in one or two sentences.", "base": "Why do plants need sunlight?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I fix a leaky faucet?\n\nKeep it brief.", "base": "How do I fix a leaky faucet?", "instruction": "Keep it brief."}
+{"prompt": "What is the difference between a cloud and a fog?\n\nGive a short, direct answer.", "base": "What is the difference between a cloud and a fog?", "instruction": "Give a short, direct answer."}
+{"prompt": "How do I boil water safely?\n\nBe concise.", "base": "How do I boil water safely?", "instruction": "Be concise."}
+{"prompt": "How do I make a homemade sourdough starter?\n\nAnswer in one or two sentences.", "base": "How do I make a homemade sourdough starter?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What is the hardest natural substance?\n\nKeep it brief.", "base": "What is the hardest natural substance?", "instruction": "Keep it brief."}
+{"prompt": "How do I remove odors from a refrigerator?\n\nGive a short, direct answer.", "base": "How do I remove odors from a refrigerator?", "instruction": "Give a short, direct answer."}
+{"prompt": "What is a solar panel used for?\n\nBe concise.", "base": "What is a solar panel used for?", "instruction": "Be concise."}
+{"prompt": "How do I start a fire with a magnifying glass?\n\nAnswer in one or two sentences.", "base": "How do I start a fire with a magnifying glass?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What language is spoken in Japan?\n\nKeep it brief.", "base": "What language is spoken in Japan?", "instruction": "Keep it brief."}
+{"prompt": "How do I peel a banana easily?\n\nGive a short, direct answer.", "base": "How do I peel a banana easily?", "instruction": "Give a short, direct answer."}
+{"prompt": "Why do stars twinkle?\n\nBe concise.", "base": "Why do stars twinkle?", "instruction": "Be concise."}
+{"prompt": "How do I keep my shoes from getting moldy?\n\nAnswer in one or two sentences.", "base": "How do I keep my shoes from getting moldy?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What is the main ingredient in mayonnaise?\n\nKeep it brief.", "base": "What is the main ingredient in mayonnaise?", "instruction": "Keep it brief."}
+{"prompt": "How long does it take to cook a chicken breast in the oven?\n\nGive a short, direct answer.", "base": "How long does it take to cook a chicken breast in the oven?", "instruction": "Give a short, direct answer."}
+{"prompt": "What color is the flag of Japan?\n\nBe concise.", "base": "What color is the flag of Japan?", "instruction": "Be concise."}
+{"prompt": "How do I fix a leaking faucet in the kitchen?\n\nAnswer in one or two sentences.", "base": "How do I fix a leaking faucet in the kitchen?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I clean a microwave safely?\n\nKeep it brief.", "base": "How do I clean a microwave safely?", "instruction": "Keep it brief."}
+{"prompt": "How many minutes should I run to burn 100 calories?\n\nGive a short, direct answer.", "base": "How many minutes should I run to burn 100 calories?", "instruction": "Give a short, direct answer."}
+{"prompt": "What is the capital of Brazil?\n\nBe concise.", "base": "What is the capital of Brazil?", "instruction": "Be concise."}
+{"prompt": "How do I unplug a power strip without the outlets being hot?\n\nAnswer in one or two sentences.", "base": "How do I unplug a power strip without the outlets being hot?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What is the best way to store fresh bread?\n\nKeep it brief.", "base": "What is the best way to store fresh bread?", "instruction": "Keep it brief."}
+{"prompt": "How do I reset a password on a Gmail account?\n\nGive a short, direct answer.", "base": "How do I reset a password on a Gmail account?", "instruction": "Give a short, direct answer."}
+{"prompt": "What is the chemical formula for water?\n\nBe concise.", "base": "What is the chemical formula for water?", "instruction": "Be concise."}
+{"prompt": "How many hours are in a week?\n\nAnswer in one or two sentences.", "base": "How many hours are in a week?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What is the tallest mountain in the world?\n\nKeep it brief.", "base": "What is the tallest mountain in the world?", "instruction": "Keep it brief."}
+{"prompt": "How do I fix a squeaky door hinge?\n\nGive a short, direct answer.", "base": "How do I fix a squeaky door hinge?", "instruction": "Give a short, direct answer."}
+{"prompt": "How do I make a simple homemade lemonade?\n\nBe concise.", "base": "How do I make a simple homemade lemonade?", "instruction": "Be concise."}
+{"prompt": "What is the main ingredient in pizza?\n\nAnswer in one or two sentences.", "base": "What is the main ingredient in pizza?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I stop my hair from frizzing in the rain?\n\nKeep it brief.", "base": "How do I stop my hair from frizzing in the rain?", "instruction": "Keep it brief."}
+{"prompt": "What year did the first iPhone launch?\n\nGive a short, direct answer.", "base": "What year did the first iPhone launch?", "instruction": "Give a short, direct answer."}
+{"prompt": "How many ounces are in a pint?\n\nBe concise.", "base": "How many ounces are in a pint?", "instruction": "Be concise."}
+{"prompt": "What is the natural habitat of a polar bear?\n\nAnswer in one or two sentences.", "base": "What is the natural habitat of a polar bear?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How long does it take for a cup of coffee to brew in a French press?\n\nKeep it brief.", "base": "How long does it take for a cup of coffee to brew in a French press?", "instruction": "Keep it brief."}
+{"prompt": "What\u2019s the best way to clean a kitchen knife without soap?\n\nGive a short, direct answer.", "base": "What\u2019s the best way to clean a kitchen knife without soap?", "instruction": "Give a short, direct answer."}
+{"prompt": "How do I make homemade pizza dough from scratch?\n\nBe concise.", "base": "How do I make homemade pizza dough from scratch?", "instruction": "Be concise."}
+{"prompt": "Why do birds build nests in trees?\n\nAnswer in one or two sentences.", "base": "Why do birds build nests in trees?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What\u2019s the capital city of Australia?\n\nKeep it brief.", "base": "What\u2019s the capital city of Australia?", "instruction": "Keep it brief."}
+{"prompt": "How can I stop my phone screen from getting smudged?\n\nGive a short, direct answer.", "base": "How can I stop my phone screen from getting smudged?", "instruction": "Give a short, direct answer."}
+{"prompt": "How do I rehydrate dry beans before cooking?\n\nBe concise.", "base": "How do I rehydrate dry beans before cooking?", "instruction": "Be concise."}
+{"prompt": "What\u2019s the most common type of volcano?\n\nAnswer in one or two sentences.", "base": "What\u2019s the most common type of volcano?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I remove a stuck zipper from a jacket?\n\nKeep it brief.", "base": "How do I remove a stuck zipper from a jacket?", "instruction": "Keep it brief."}
+{"prompt": "Why do some people have freckles?\n\nGive a short, direct answer.", "base": "Why do some people have freckles?", "instruction": "Give a short, direct answer."}
+{"prompt": "What\u2019s the best way to store fresh herbs for a week?\n\nBe concise.", "base": "What\u2019s the best way to store fresh herbs for a week?", "instruction": "Be concise."}
+{"prompt": "How long does it take for a tomato to grow on a plant?\n\nAnswer in one or two sentences.", "base": "How long does it take for a tomato to grow on a plant?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What kind of music do whales use to communicate?\n\nKeep it brief.", "base": "What kind of music do whales use to communicate?", "instruction": "Keep it brief."}
+{"prompt": "How do I prevent a garden hose from leaking?\n\nGive a short, direct answer.", "base": "How do I prevent a garden hose from leaking?", "instruction": "Give a short, direct answer."}
+{"prompt": "Why do flowers close at night?\n\nBe concise.", "base": "Why do flowers close at night?", "instruction": "Be concise."}
+{"prompt": "How can I tell if a battery is fully charged?\n\nAnswer in one or two sentences.", "base": "How can I tell if a battery is fully charged?", "instruction": "Answer in one or two sentences."}
+{"prompt": "What\u2019s the most common language spoken in Brazil?\n\nKeep it brief.", "base": "What\u2019s the most common language spoken in Brazil?", "instruction": "Keep it brief."}
+{"prompt": "How do I clean a dusty laptop screen?\n\nGive a short, direct answer.", "base": "How do I clean a dusty laptop screen?", "instruction": "Give a short, direct answer."}
+{"prompt": "What\u2019s the smallest continent in the world?\n\nBe concise.", "base": "What\u2019s the smallest continent in the world?", "instruction": "Be concise."}
+{"prompt": "How do I start a compost bin in my backyard?\n\nAnswer in one or two sentences.", "base": "How do I start a compost bin in my backyard?", "instruction": "Answer in one or two sentences."}
+{"prompt": "Why does the sky appear blue during the day?\n\nKeep it brief.", "base": "Why does the sky appear blue during the day?", "instruction": "Keep it brief."}
+{"prompt": "What\u2019s the fastest animal in the world?\n\nGive a short, direct answer.", "base": "What\u2019s the fastest animal in the world?", "instruction": "Give a short, direct answer."}
+{"prompt": "What is the purpose of a comma in English grammar?\n\nBe concise.", "base": "What is the purpose of a comma in English grammar?", "instruction": "Be concise."}
+{"prompt": "How do I boil eggs perfectly every time?\n\nAnswer in one or two sentences.", "base": "How do I boil eggs perfectly every time?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I clean a microwave without damaging it?\n\nKeep it brief.", "base": "How do I clean a microwave without damaging it?", "instruction": "Keep it brief."}
+{"prompt": "How do I charge an Android phone without a wall outlet?\n\nGive a short, direct answer.", "base": "How do I charge an Android phone without a wall outlet?", "instruction": "Give a short, direct answer."}
+{"prompt": "How do I remove baking soda stains from clothes?\n\nBe concise.", "base": "How do I remove baking soda stains from clothes?", "instruction": "Be concise."}
+{"prompt": "Why do stars twinkle in the night sky?\n\nAnswer in one or two sentences.", "base": "Why do stars twinkle in the night sky?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I adjust the brightness on my smartphone screen?\n\nKeep it brief.", "base": "How do I adjust the brightness on my smartphone screen?", "instruction": "Keep it brief."}
+{"prompt": "What happens to water when it freezes?\n\nGive a short, direct answer.", "base": "What happens to water when it freezes?", "instruction": "Give a short, direct answer."}
+{"prompt": "How do I organize my kitchen drawers efficiently?\n\nBe concise.", "base": "How do I organize my kitchen drawers efficiently?", "instruction": "Be concise."}
+{"prompt": "What is the process of photosynthesis?\n\nAnswer in one or two sentences.", "base": "What is the process of photosynthesis?", "instruction": "Answer in one or two sentences."}
+{"prompt": "How do I defrost a frozen meat quickly and safely?\n\nKeep it brief.", "base": "How do I defrost a frozen meat quickly and safely?", "instruction": "Keep it brief."}
+{"prompt": "How do I make a homemade lemonade?\n\nGive a short, direct answer.", "base": "How do I make a homemade lemonade?", "instruction": "Give a short, direct answer."}
+{"prompt": "What is the average lifespan of a battery in a smartphone?\n\nBe concise.", "base": "What is the average lifespan of a battery in a smartphone?", "instruction": "Be concise."}
