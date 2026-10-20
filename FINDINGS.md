@@ -20,10 +20,11 @@ compare`). Unless noted:
 3. [What the report views showed](#what-the-report-views-showed)
 4. [Search, and why its numbers are optimistic](#search-and-why-its-numbers-are-optimistic)
 5. [Edits on Qwen3-4B](#edits-on-qwen3-4b)
-6. [How the behaviors relate](#how-the-behaviors-relate)
-7. [Verbosity: a readable direction that does not steer](#verbosity-a-readable-direction-that-does-not-steer)
-8. [Gemma 3 12B refusal benchmark](#gemma-3-12b-refusal-benchmark)
-9. [Limitations](#limitations)
+6. [Sycophancy dataset audit](#sycophancy-dataset-audit)
+7. [How the behaviors relate](#how-the-behaviors-relate)
+8. [Verbosity: a readable direction that does not steer](#verbosity-a-readable-direction-that-does-not-steer)
+9. [Gemma 3 12B refusal benchmark](#gemma-3-12b-refusal-benchmark)
+10. [Limitations](#limitations)
 
 ## Behaviors and data
 
@@ -170,8 +171,77 @@ prompts at KL 0.199 (trial 19). Treat that number as an upper bound on the effec
 Under the sycophancy edit, 17 of 60 held-out prompts moved toward candor by more than 0.5 points and 2 moved
 away. Of the two largest drops I read, one is a clean win: the edited answer states the problem with the
 user's work in its first sentence. The other is an overcorrection: the user's claim was sound, but the
-edited answer called it unsafe, and the judge scored that as fully candid. The dataset's own "honest" answer for that prompt makes the same mistake,
-because the expander's premise check let a correct claim through.
+edited answer called it unsafe, and the judge scored that as fully candid. That finding led to the dataset
+audit below, which cuts the edit's measured effect from −0.36 to −0.27.
+
+## Sycophancy dataset audit
+
+Every sycophancy pair was hand-checked against a rubric fixed before reading. The labels and a note per item
+are in `data/sycophancy/premise_audit.jsonl`.
+
+| label | meaning |
+|---|---|
+| ok | the message has a real, checkable flaw, and the honest answer names it correctly |
+| sound | the user's claim or plan is actually right, and the honest answer wrongly rejects it |
+| wrong-fix | there is a flaw, but the honest answer's correction is itself wrong or misses it |
+| debatable | whether there is a flaw depends on opinion or context, or the message is incoherent |
+
+| | ok | sound | wrong-fix | debatable |
+|---|---|---|---|---|
+| hand-written seeds (51) | 51 | 0 | 0 | 0 |
+| generated pairs (249) | 173 | 17 | 25 | 34 |
+| held-out prompts (60) | 45 | 2 | 7 | 6 |
+
+About a third of the generated pairs (76 of 249) are flawed. Examples of the sound items:
+
+- "Wi-Fi signals travel faster than sound" (they do).
+- Microwave-thawed meat cooked right away is safe (it is standard guidance).
+- Cats can't get sunburned (they can).
+- Carrots are roots (they are).
+
+The expander's filter asked Qwen3-4B whether each premise was flawed, and it let these through.
+
+**A model check does not catch them.** gemma-3-12b-it answered the same two questions for every pair:
+
+- Is the premise flawed?
+- Is the honest answer accurate?
+
+It said yes to both for nearly everything: P(flawed) averages 0.99 even on the 17 sound items, and it flags
+none of them (`scripts/premise_check.py`). It rates "Wi-Fi travels faster than sound" as flawed with
+P = 1.000. Asked "is this mistaken?", these models go along with the framing. Premise errors need a human, or
+at least a different question format.
+
+**The direction barely changes.** Recomputing the direction from the 179 clean train pairs, without the 61
+flagged ones, gives cosine ≥ 0.994 with the saved direction at every layer. Held-out separation is unchanged
+(peak d 6.61).
+
+**The measured effect shrinks.** For the eval only the prompt's premise matters, so sound and debatable
+prompts are the problem there. On those, the original model often agrees, the judge scores the agreement as
+mildly sycophantic, and the edit turns it into disagreement.
+
+| held-out prompts | n | before → after | change |
+|---|---|---|---|
+| all | 60 | 1.53 → 1.18 | −0.36 ± 0.18 |
+| with a real flaw (ok + wrong-fix) | 52 | 1.40 → 1.14 | −0.27 ± 0.18 |
+| ok only | 45 | 1.36 → 1.13 | −0.22 ± 0.18 |
+| sound + debatable | 8 | 2.38 → 1.44 | −0.93 ± 0.66 |
+
+**The edit makes the model more contrarian.** I generated answers to all 17 sound-premise prompts with and
+without the edit and labeled each one by hand. Before and after were read side by side, so this labeling is
+not blind. The answers are in `data/sycophancy/sound_premise_answers.jsonl`.
+
+| answers to 17 correct claims | agrees | partly agrees | rejects |
+|---|---|---|---|
+| original model | 8 | 5 | 4 |
+| sycophancy edit | 4 | 3 | 10 |
+
+Eight answers moved toward rejecting a correct claim, and none moved the other way.
+
+The design explains it. Every pair contrasts agreeing with disagreeing on a supposedly flawed premise, so the
+direction cannot separate candor from contrarianism. Removing it pushes the model toward disagreement
+whether or not the user is wrong. A better dataset would add pairs where the user is right: there the honest
+answer agrees plainly, and the sycophantic one agrees with flattery. The judge would also need sound-premise
+items in its validation set.
 
 ## How the behaviors relate
 
@@ -295,8 +365,10 @@ and filler, per the token heatmap and logit lens). It does not capture the decis
   60 labels. The sycophancy judge is +0.24 too lenient on unsteered baseline answers. It also rewarded at
   least one contrarian answer to a sound claim.
 - **Synthetic datasets.** The hedging, sycophancy and verbosity pairs were written by the same 4B model that
-  is being steered. Some sycophancy items have wrong premises or wrong "honest" answers. Hedging and
-  sycophancy are largely separable by vocabulary alone.
+  is being steered. A hand audit found 76 of 249 generated sycophancy pairs flawed, and the sycophancy
+  direction partly encodes plain disagreement (see the
+  [audit](#sycophancy-dataset-audit)). The hedging and verbosity datasets have not been audited the same way.
+  Hedging and sycophancy are largely separable by vocabulary alone.
 - **Truncated answers.** Judged behaviors generate at most 256 tokens. Qwen3-4B's baseline answers to
   sycophancy prompts average 255 tokens, so the judge scores truncated answers, and the search's length
   penalty could not act.
