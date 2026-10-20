@@ -371,6 +371,102 @@ def verbosity_figure() -> str:
     )
 
 
+BANNER_STYLE = """
+.title {{ fill: var(--ink); font-size: 84px; font-weight: 700; letter-spacing: -1.5px; }}
+.tagline {{ fill: var(--ink2); font-size: 22px; }}
+.pipeline {{ fill: var(--muted); font-size: 15px; font-family: ui-monospace, Menlo, monospace; }}
+.formula {{ fill: var(--ink2); font-size: 15px; font-family: ui-monospace, Menlo, monospace; }}
+.mark {{ fill: var(--ink); font-size: 18px; font-weight: 600; paint-order: stroke; stroke: var(--surface); stroke-width: 5px; stroke-linejoin: round; }}
+.space {{ fill: var(--grid); }}
+.mean {{ fill: var(--surface); stroke-width: 3; }}
+.plane {{ stroke: var(--muted); stroke-width: 1.5; opacity: 0; animation: plane {cycle}s ease-in-out {start}s infinite; }}
+.collapse {{ animation: collapse {cycle}s ease-in-out {start}s infinite; }}
+.vector {{ animation: vector {cycle}s ease-in-out {start}s infinite; }}
+@keyframes collapse {{ 0%, 30% {{ transform: translate(0, 0); }} 45%, 70% {{ transform: translate(var(--dx), var(--dy)); }} 85%, 100% {{ transform: translate(0, 0); }} }}
+@keyframes plane {{ 0%, 28% {{ opacity: 0; }} 42%, 72% {{ opacity: 1; }} 86%, 100% {{ opacity: 0; }} }}
+@keyframes vector {{ 0%, 30% {{ opacity: 1; }} 45%, 70% {{ opacity: 0.12; }} 85%, 100% {{ opacity: 1; }} }}
+@media (prefers-reduced-motion: reduce) {{ .plane {{ opacity: 0; }} }}
+"""
+
+
+def _arrow(start, end, css: str, head: float = 13, width: float = 3, wait: float = 0.0) -> str:
+    """A straight arrow from ``start`` to ``end`` that draws in after ``wait`` seconds, then shows its head."""
+    (x0, y0), (x1, y1) = start, end
+    dx, dy = x1 - x0, y1 - y0
+    length = math.hypot(dx, dy)
+    ux, uy = dx / length, dy / length
+    bx, by = x1 - ux * head, y1 - uy * head
+    left = (bx - uy * head * 0.55, by + ux * head * 0.55)
+    right = (bx + uy * head * 0.55, by - ux * head * 0.55)
+    return (
+        f'<path class="line {css} draw" pathLength="1" style="stroke-width: {width}; animation-delay: {wait:.2f}s" d="M{x0:.1f},{y0:.1f} L{bx:.1f},{by:.1f}"/>'
+        f'<path class="f{css[1:]} fade" style="animation-delay: {wait + 1.2:.2f}s" d="M{x1:.1f},{y1:.1f} L{left[0]:.1f},{left[1]:.1f} L{right[0]:.1f},{right[1]:.1f} Z"/>'
+    )
+
+
+def banner_figure(seed: int = 7, cycle: float = 9.0, start: float = 2.4) -> str:
+    """The README banner: two classes of activations, their mean-difference vector, and an ablation loop.
+
+    Points fade in, the direction r = mean(+) - mean(-) draws in, and then, on a loop, every point
+    loses its component along r, so both classes collapse onto the plane through their midpoint.
+    That is the edit Vectorlab applies to a behavior direction. The title sits on the right.
+    """
+    width, height = 1200, 320
+    rng = np.random.default_rng(seed)
+    pos_mean, neg_mean = np.array([430.0, 120.0]), np.array([196.0, 212.0])
+    unit = (pos_mean - neg_mean) / np.linalg.norm(pos_mean - neg_mean)
+    middle = (pos_mean + neg_mean) / 2
+    normal = np.array([-unit[1], unit[0]])
+
+    def ablated(point):
+        return point - ((point - middle) @ unit) * unit
+
+    body = [f'<circle class="space" cx="{x}" cy="{y}" r="1.4"/>' for x in range(56, 580, 28) for y in range(36, 300, 28)]
+    plane_ends = [middle + normal * 112, middle - normal * 112]
+    body.append(f'<line class="plane" x1="{plane_ends[0][0]:.1f}" y1="{plane_ends[0][1]:.1f}" x2="{plane_ends[1][0]:.1f}" y2="{plane_ends[1][1]:.1f}"/>')
+    for k, (center, role) in enumerate(((neg_mean, "2"), (pos_mean, "1"))):
+        points = center + np.clip(rng.normal(0, 1, (22, 2)), -2, 2) * np.array([38.0, 28.0])
+        for i, point in enumerate(points):
+            dx, dy = ablated(point) - point
+            body.append(
+                f'<g class="fade" style="animation-delay: {0.15 + 0.03 * (i + 22 * k):.2f}s">'
+                f'<circle class="f{role} ring collapse" style="--dx: {dx:.1f}px; --dy: {dy:.1f}px" cx="{point[0]:.1f}" cy="{point[1]:.1f}" r="5"/></g>'
+            )
+    body.append(f'<g class="vector">{_arrow(neg_mean + unit * 12, pos_mean - unit * 12, "s4", head=16, width=3.5, wait=0.6)}</g>')
+    for center, role, sign in ((neg_mean, "2", "−"), (pos_mean, "1", "+")):
+        dx, dy = middle - center
+        body.append(
+            f'<g class="fade" style="animation-delay: 1.0s"><g class="collapse" style="--dx: {dx:.1f}px; --dy: {dy:.1f}px">'
+            f'<circle class="mean s{role}" cx="{center[0]:.1f}" cy="{center[1]:.1f}" r="9"/>'
+            f'<text class="mark" x="{center[0] + (92 if sign == "+" else -122):.1f}" y="{center[1] + 6:.1f}">μ{sign}</text></g></g>'
+        )
+    label = middle + normal * 24
+    body.append(f'<g class="vector"><text class="mark fade" style="animation-delay: 1.4s" x="{label[0]:.1f}" y="{label[1]:.1f}">r</text></g>')
+    body.append('<text class="formula fade" style="animation-delay: 1.6s" x="56" y="298">r = μ+ − μ−</text>')
+    body.append('<text class="formula fade" style="animation-delay: 1.8s" x="250" y="298">ablate:  x ← x − (x·r) r</text>')
+
+    left = 640
+    body.append(f'<text class="title fade" style="animation-delay: 0.3s" x="{left}" y="142">Vectorlab</text>')
+    body.append(_arrow((left + 4, 166), (left + 404, 166), "s1", head=14, width=4, wait=0.8))
+    body.append(f'<text class="tagline fade" style="animation-delay: 1.1s" x="{left}" y="214">Find, inspect and edit behavior directions</text>')
+    body.append(f'<text class="tagline fade" style="animation-delay: 1.2s" x="{left}" y="244">in transformer language models</text>')
+    body.append(f'<text class="pipeline fade" style="animation-delay: 1.5s" x="{left}" y="286">extract → analyze → search → edit → eval → export</text>')
+
+    style = STYLE.format(light=_vars({**LIGHT, "s4": LIGHT["ink2"]}), dark=_vars({**DARK, "s4": DARK["ink2"]}), font=FONT)
+    style += BANNER_STYLE.format(cycle=cycle, start=start)
+    description = (
+        "Vectorlab banner: two clusters of activation points, the arrow r from the mean of one class to the other, "
+        "and an animation that removes each point's component along r, collapsing both classes onto one plane."
+    )
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img">'
+        f"<title>Vectorlab</title><desc>{esc(description)}</desc><style>{style}</style>"
+        f'<rect class="surface" x="0.5" y="0.5" width="{width - 1}" height="{height - 1}" rx="16"/>'
+        + "".join(body)
+        + "</svg>"
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--out", type=Path, default=Path("docs/figures"))
@@ -379,6 +475,7 @@ def main() -> None:
     behaviors = ["refusal", "hedging", "sycophancy", "verbosity"]
     compare = load_json(Path("runs") / f"compare-{MODEL}" / "compare.json")
     figures = {
+        "banner.svg": banner_figure(),
         "separation.svg": separation_figure(behaviors),
         "similarity.svg": similarity_figure(behaviors + ["verbosity-instruction"]),
         "cross-effects.svg": cross_effect_figure(compare, {"verbosity-instruction": "verbosity", "sycophancy": "sycophancy stance"}, {"sycophancy": "sycophancy edit", "verbosity-instruction": "verbosity edit (instruction pair)"}),

@@ -1,6 +1,7 @@
-# Vectorlab
-
-Find, inspect and edit behavior directions in transformer language models.
+<h1 align="center">
+  <img src="docs/figures/banner.svg" width="100%"
+       alt="Vectorlab: find, inspect and edit behavior directions in transformer language models">
+</h1>
 
 Vectorlab takes a behavior defined by two contrasting datasets, such as harmful vs harmless prompts or
 committed vs hedged answers. From these it:
