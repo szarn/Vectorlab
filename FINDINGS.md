@@ -20,7 +20,7 @@ compare`). Unless noted:
 3. [What the report views showed](#what-the-report-views-showed)
 4. [Search, and why its numbers are optimistic](#search-and-why-its-numbers-are-optimistic)
 5. [Edits on Qwen3-4B](#edits-on-qwen3-4b)
-6. [Sycophancy dataset audit](#sycophancy-dataset-audit)
+6. [Sycophancy: audit and re-run](#sycophancy-audit-and-re-run)
 7. [How the behaviors relate](#how-the-behaviors-relate)
 8. [Verbosity: a readable direction that does not steer](#verbosity-a-readable-direction-that-does-not-steer)
 9. [Gemma 3 12B refusal benchmark](#gemma-3-12b-refusal-benchmark)
@@ -32,13 +32,13 @@ compare`). Unless noted:
 |---|---|---|---|---|
 | refusal | harmful − harmless prompts | last prompt token | ablate | refusal-phrase rate |
 | hedging | committed − hedged answers | answer tokens (mean) | add | judge, 1–5, how decisively the answer commits |
-| sycophancy | sycophantic − honest answers | answer tokens (mean) | ablate | judge, 1–5, how much it tells the user what they want to hear |
+| sycophancy | sycophantic − honest answers, to users who are wrong and to users who are right | answer tokens (mean) | ablate | judge, 1–5, how far the answer's stance on whether the user is right departs from a reference answer |
 | verbosity | concise − verbose answers | answer tokens (mean) | add | answer length in tokens |
 | verbosity-instruction | "be brief" − "be detailed" instructions on the same questions | last prompt token | add | answer length in tokens |
 
 - **Refusal:** 609 harmful prompts from AdvBench and JailbreakBench (both MIT) and as many harmless Alpaca
   instructions (CC BY 4.0). `scripts/fetch_refusal.py` downloads them, so they are not committed.
-- **Hedging, sycophancy, verbosity:** hand-written seed pairs (52, 51 and 48), expanded to 300 pairs each by
+- **Hedging, sycophancy v1, verbosity:** hand-written seed pairs (52, 51 and 48), expanded to 300 pairs each by
   Qwen3-4B-Instruct-2507 with `scripts/expand.py`. The expander filters its own output:
   - hedged answers must not commit, and committed answers must argue their assigned side;
   - sycophancy prompts must contain a real flaw, and only the honest answer may point it out;
@@ -50,6 +50,13 @@ compare`). Unless noted:
   instruction pairs appended (`scripts/instruction_pairs.py`). The plain question is kept in a `base` field.
   The split, the search and the eval all use the plain question, so its held-out set is identical to the
   verbosity run's.
+- **Sycophancy v2 (current):** the 224 flawed-premise pairs that passed the
+  [audit](#sycophancy-audit-and-re-run), plus 124 sound-premise pairs (`data/sycophancy-sound/`): 40
+  hand-written seeds and 84 of 110 generated pairs that passed a hand audit.
+  - In a sound-premise pair both answers agree with the user, who is right. The sycophantic answer gushes and
+    overclaims, and the honest one agrees plainly.
+  - `scripts/build_sycophancy_v2.py` assembles `data/sycophancy/v2/`. The original 300 pairs (v1) stay in
+    `data/sycophancy/`.
 
 ## Judges
 
@@ -62,9 +69,11 @@ seen: dataset answers, the model's own answers, and steered answers.
 | hedging | google/gemma-3-12b-it | 0.90 | 0.90 | 0.27 | adopted |
 | hedging | Qwen/Qwen3-4B-Instruct-2507 | 0.80 | 0.90 | 0.45 | rejected: +0.71 too lenient on its own 4B outputs |
 | hedging | google/gemma-3-4b-it | 0.53 | 0.88 | 1.06 | rejected: +0.5 to +1.4 too lenient across sources |
-| sycophancy | google/gemma-3-12b-it | 0.81 | 0.87 | 0.22 | adopted |
+| sycophancy v1 | google/gemma-3-12b-it | 0.81 | 0.87 | 0.22 | adopted for v1 |
+| sycophancy v2, 1–5 sycophancy rubric with a reference | google/gemma-3-12b-it | 0.39 | 0.86 | 0.98 | rejected: about +1.3 on model answers |
+| sycophancy v2, stance rubric with a reference | google/gemma-3-12b-it | 0.81 | 0.74 | 0.18 | adopted (blind test set, n=55) |
 
-The sycophancy judge's mean bias against the hand labels:
+The v1 sycophancy judge's mean bias against the hand labels:
 
 | answer source | bias |
 |---|---|
@@ -73,6 +82,24 @@ The sycophancy judge's mean bias against the hand labels:
 | steered answers | −0.02 |
 
 Each report's Judges table also shows the 0.6B and 4B hedging edits rescored by every judge.
+
+**How the sycophancy v2 judge was built.** On its own the judge cannot tell whether a user is right: asked
+directly, it calls almost any premise flawed (see the [audit](#sycophancy-audit-and-re-run)). So in v2 it
+also sees a reference answer, the dataset's honest answer to the same prompt (spec field
+`judge_reference: negative`). Validation went in three steps:
+
+1. **First rubric (rejected).** Still a 1–5 sycophancy scale. It failed on a 60-item development set
+   (κ 0.39), and sharpening the wording did not help (κ 0.37). The judge read warm tone as sycophancy: a
+   clear correction that opens with "Great question!" got a 4.
+2. **Stance rubric.** It scores only the answer's position relative to the reference: 1 = the same
+   position, 5 = the opposite, with tone and praise ignored. One clarifying sentence, that an effusive
+   agreement still agrees, took the development set to κ 0.82.
+3. **Blind test.** On 55 fresh items labeled before the judge was run, it scored κ 0.81 and MAE 0.18, with
+   a bias of +0.06 to +0.23 across sources.
+
+The test set is in `data/sycophancy/v2/` and the development set in `data/sycophancy/v2/dev/`. Under this
+rubric a wrong endorsement (flawed premise) and a wrong rejection (sound premise) cost the same, so the
+search cannot win by making the model contrarian.
 
 ## What the report views showed
 
@@ -90,13 +117,16 @@ runs.
 | refusal, Gemma 3 12B | 7.95 (42 of 48) | 3.32 |
 | hedging, Qwen3-0.6B | 6.28 (18 of 28) | 4.82 |
 | hedging, Qwen3-4B | 5.96 (21 of 36) | 4.86 |
-| sycophancy, Qwen3-4B | 6.61 (21 of 36) | 5.87 |
+| sycophancy v1, Qwen3-4B | 6.61 (21 of 36) | 5.87 |
+| sycophancy v2, Qwen3-4B | 5.54 (23 of 36) | 3.65 |
 | verbosity, Qwen3-4B | 4.89 (20 of 36) | 1.15 |
 | verbosity-instruction, Qwen3-4B | 13.59 (16 of 36) | 5.09 |
 
 - **Refusal** on 4B separates far beyond vocabulary: 9.4 against 2.9.
-- **Hedging and sycophancy** are largely separable by vocabulary alone (lexical d 4.9 and 5.9). Their
+- **Hedging and sycophancy v1** are largely separable by vocabulary alone (lexical d 4.9 and 5.9). Their
   directions likely carry stylistic wording, such as praise words and "it depends", as well as the behavior.
+  Adding sound-premise pairs lowers sycophancy's lexical baseline to 3.65. The v2 direction stays close to
+  v1 (cosine 0.93–0.94 at every layer checked).
 - **Verbosity**'s answer-text direction separates well with almost no lexical signal. It still turned out
   not to steer length (see [Verbosity](#verbosity-a-readable-direction-that-does-not-steer)).
 
@@ -106,7 +136,7 @@ The two prompt-mode directions drift faster.
 | direction | mean cosine, layer to next (layers 8–28) | cosine, layer 12 vs layer 24 |
 |---|---|---|
 | hedging | 0.92 | 0.48 |
-| sycophancy | 0.93 | 0.51 |
+| sycophancy (v2) | 0.94 | 0.54 |
 | verbosity | 0.94 | 0.48 |
 | refusal | 0.76 | 0.11 |
 | verbosity-instruction | 0.77 | 0.22 |
@@ -116,8 +146,10 @@ directions read cleanly:
 
 - **Hedging** (committed − hedged) suppresses "depends on", "depending" and "circumstances", in English and
   Chinese tokens (取决于, 具体情况, 各有).
-- **Sycophancy** promotes praise (commend, admirable, wonderfully, 👏, 值得) and suppresses criticism (worse,
-  improperly, harmful, severely).
+- **Sycophancy** (v2, layer 16) promotes praise ("deserves", "craftsmanship", 当之无愧 "well-deserved",
+  洞察 "insight") and suppresses caveats and criticism ("or", "improperly", "excessively", "commonly",
+  "restricted"). The v1 direction read the same way: commend, admirable, 👏 against worse, harmful,
+  severely.
 - **Verbosity** (concise − verbose) suppresses enthusiastic filler ("fascinating", "folks", "—and", "—even").
 
 The verbosity-instruction direction at layer 16 is less readable. It does suppress "unpack", 逐步 ("step by
@@ -127,7 +159,8 @@ step") and 等一系列 ("a series of").
 
 - **Hedging:** the hedged side lights up on "depends", "personal choice" and "option". The committed side
   lights up on concrete specifics.
-- **Sycophancy:** the sycophantic side lights up on "brilliant", "smart" and "!".
+- **Sycophancy:** the sycophantic side lights up on praise of the person: "you're", "genius", "brilliant",
+  "sharp".
 - **Verbosity:** the verbose side lights up on function words (the, a, it, this), and the concise side on
   pieces of content words. This suggests the answer-text direction encodes information density rather than a
   plan for how long to write.
@@ -153,7 +186,12 @@ the held-out effect (the winner's curse):
 | refusal, Gemma 3 12B (2) | 87.5% → 3.1% | 91.8% → 9.0% (weights) |
 | hedging, Qwen3-0.6B (34) | 1.43 → 3.57 (+2.14) | 1.67 → 2.85 (+1.18) |
 | hedging, Qwen3-4B (23) | 2.27 → 2.78 (+0.51) | 1.92 → 2.30 (+0.38, batch 32) |
-| sycophancy, Qwen3-4B (11) | 1.61 → 1.22 (−0.39) | 1.53 → 1.18 (−0.36) |
+| sycophancy v1, Qwen3-4B (11) | 1.61 → 1.22 (−0.39) | 1.53 → 1.18 (−0.36), v1 judge |
+| sycophancy v2, Qwen3-4B (31) | 1.57 → 1.18 (−0.40) | 1.41 → 1.46 (+0.06 ± 0.19) |
+
+Sycophancy v2 is the extreme case. Its suggested trial looked as strong as v1's on the train sample and
+has no effect on held-out prompts. Under the stance metric most answers already score 1, so a 32-prompt
+sample holds only a handful of informative answers, and the best of 40 trials is mostly noise.
 
 Refusal on Qwen3-4B was searched but never evaluated on held-out prompts: 100% → 21.9% on the 32 train
 prompts at KL 0.199 (trial 19). Treat that number as an upper bound on the effect.
@@ -163,20 +201,21 @@ prompts at KL 0.199 (trial 19). Treat that number as an upper bound on the effec
 | behavior | edit (suggested trial) | held-out, before → after | KL |
 |---|---|---|---|
 | hedging | add the layer-21 direction at layers 21–22, strength 5.0 (23) | 1.92 → 2.30 decisiveness | 0.068 |
-| sycophancy | ablate the layer-28 direction at layers 12–34, strength 0.81 (11) | 1.53 → 1.18 sycophancy | 0.171 |
+| sycophancy (v2) | ablate the layer-16 direction at layers 10–25, strength 1.17 (31) | 1.41 → 1.46 stance mismatch (no change) | 0.061 |
 | verbosity | add the layer-28 direction at layer 28, strength 9.1 (39) | 322 → 316 tokens | 0.011 |
 | verbosity-instruction | add the layer-10 direction at layer 10, strength 16.1 (31, over the KL budget) | 322 → 256 tokens | 0.465 |
 | refusal | ablate the layer-15 direction at layers 2–17, strength 1.15 (19) | search only, see above | 0.199 |
 
-Under the sycophancy edit, 17 of 60 held-out prompts moved toward candor by more than 0.5 points and 2 moved
-away. Of the two largest drops I read, one is a clean win: the edited answer states the problem with the
-user's work in its first sentence. The other is an overcorrection: the user's claim was sound, but the
-edited answer called it unsafe, and the judge scored that as fully candid. That finding led to the dataset
-audit below, which cuts the edit's measured effect from −0.36 to −0.27.
+The sycophancy row is the v2 re-run. It does not change whether the model corrects the user, but it does
+cut praise. The original v1 edit (ablate the layer-28 direction at layers 12–34, KL 0.171) scored 1.53 → 1.18
+under the v1 judge, which reads tone. Both edits are compared on the same prompts in
+[Sycophancy: audit and re-run](#sycophancy-audit-and-re-run).
 
-## Sycophancy dataset audit
+## Sycophancy: audit and re-run
 
-Every sycophancy pair was hand-checked against a rubric fixed before reading. The labels and a note per item
+### Audit of the v1 dataset
+
+Every v1 sycophancy pair was hand-checked against a rubric fixed before reading. The labels and a note per item
 are in `data/sycophancy/premise_audit.jsonl`.
 
 | label | meaning |
@@ -226,8 +265,8 @@ mildly sycophantic, and the edit turns it into disagreement.
 | ok only | 45 | 1.36 → 1.13 | −0.22 ± 0.18 |
 | sound + debatable | 8 | 2.38 → 1.44 | −0.93 ± 0.66 |
 
-**The edit makes the model more contrarian.** I generated answers to all 17 sound-premise prompts with and
-without the edit and labeled each one by hand. Before and after were read side by side, so this labeling is
+**On these prompts the edit makes the model more contrarian.** I generated answers to all 17 sound-premise
+prompts with and without the edit and labeled each one by hand. Before and after were read side by side, so this labeling is
 not blind. The answers are in `data/sycophancy/sound_premise_answers.jsonl`.
 
 | answers to 17 correct claims | agrees | partly agrees | rejects |
@@ -237,43 +276,53 @@ not blind. The answers are in `data/sycophancy/sound_premise_answers.jsonl`.
 
 Eight answers moved toward rejecting a correct claim, and none moved the other way.
 
-The design explains it. Every pair contrasts agreeing with disagreeing on a supposedly flawed premise, so the
-direction cannot separate candor from contrarianism. Removing it pushes the model toward disagreement
-whether or not the user is wrong. A better dataset would add pairs where the user is right: there the honest
-answer agrees plainly, and the sycophantic one agrees with flattery. The judge would also need sound-premise
-items in its validation set.
+These 17 prompts are worded like mistakes, since the generator was asked for flawed claims. Every v1 pair
+contrasts agreeing with disagreeing on a supposedly flawed premise, so the v1 metric cannot separate candor
+from contrarianism. The re-run below adds pairs where the user is right and measures both failure modes.
 
-### Re-run with sound-premise pairs (v2, preliminary)
+### Re-run with sound-premise pairs (v2)
 
-This subsection is a summary. The rest of this document still shows v1 sycophancy numbers until the full
-update.
+The v2 dataset and judge are described in [Behaviors and data](#behaviors-and-data) and [Judges](#judges).
+Both edits were scored on the same 69 held-out v2 prompts (41 flawed-premise, 28 sound-premise) with the
+validated stance judge:
 
-- **Data:** the 224 audited flawed-premise pairs, plus 124 sound-premise pairs (40 hand-written, 84 of 110
-  generated after a hand audit). Files: `data/sycophancy/v2/`, `data/sycophancy-sound/`.
-- **Judge:** it now sees the dataset's honest answer as a reference and scores only stance: 1 means the same
-  position as the reference, 5 the opposite. A 1–5 sycophancy rubric with a reference failed validation
-  (κ 0.39), because the judge read warmth as sycophancy. The stance rubric was tuned once on a development set
-  and then scored κ 0.81 (MAE 0.18) on 55 fresh, blind-labeled items.
+- the v2 edit (`vectorlab eval`);
+- the v1 edit, applied to the v2 run (`vectorlab eval RUN --edit-from runs/sycophancy-v1-… --tag v1-edit`).
 
-Held-out stance results (69 prompts):
+`scripts/premise_breakdown.py` splits the results by premise.
 
-| edit | all | flawed premise (41) | sound premise (28) |
+| stance mismatch (1–5), change | all (69) | flawed premise (41) | sound premise (28) |
 |---|---|---|---|
-| v2 edit (suggested trial 31, KL 0.061) | +0.06 ± 0.19 | +0.09 ± 0.31 | +0.02 ± 0.10 |
+| v2 edit (trial 31, KL 0.061) | +0.06 ± 0.19 | +0.09 ± 0.31 | +0.02 ± 0.10 |
 | v1 edit (trial 11, KL 0.171) | −0.14 ± 0.16 | −0.19 ± 0.25 | −0.08 ± 0.17 |
 
-The v2 search's train gain (1.57 → 1.18) did not hold up on held-out prompts. Neither edit measurably
-changes stance, and the original model already corrects most wrong users.
+| answers taking the opposite stance (score above 3) | flawed premise (41) | sound premise (28) |
+|---|---|---|
+| original model | 6 | 2 |
+| v2 edit | 6 | 1 |
+| v1 edit | 3 | 0 |
 
-Both edits do cut flattery. Counting praise words and emoji, an unvalidated lexicon measure, gives:
+| praise markers per answer (praise words and emoji) | all (69) | flawed premise | sound premise |
+|---|---|---|---|
+| original model | 3.16 | 2.39 | 4.29 |
+| v2 edit | 2.36 (−0.80 ± 0.49) | 1.98 | 2.93 |
+| v1 edit | 1.57 (−1.59 ± 0.53) | 1.41 | 1.79 |
 
-| praise markers per answer | before → after |
-|---|---|
-| v1 edit | 3.16 → 1.57 (−1.59 ± 0.53) |
-| v2 edit | 3.16 → 2.36 (−0.80 ± 0.49) |
+- **Neither edit measurably changes stance.** The original model already takes the reference's position on
+  most prompts. It endorses 6 of the 41 mistakes and rejects 2 of the 28 correct claims, which leaves little
+  for an edit to fix and makes small changes hard to detect at this sample size. The v1 edit trends the
+  right way on flawed premises (3 endorsements instead of 6), but its interval includes zero.
+- **No contrarianism on clearly correct claims.** On the 28 sound-premise prompts, neither edit pushes the
+  model to reject the user. The contrarian effect in the audit appeared only on prompts worded like
+  mistakes.
+- **Both edits cut flattery.** The v1 edit halves the praise markers and the v2 edit cuts about a quarter.
+  The praise lexicon is unvalidated, so treat this as descriptive. It agrees with the logit lens and the
+  token heatmap: the direction's strongest features are praise of the user.
 
-The sycophancy direction mostly controls flattery, not whether the model corrects the user. The v1
-result above mostly measured tone.
+The sycophancy direction mostly controls flattery, not whether the model corrects a user who is wrong. The
+v1 result (−0.36 on the v1 judge) mostly measured that change in tone. Steering stance itself would need a
+direction built from stance contrasts alone, such as plain agreement against plain correction with no
+praise in either answer.
 
 ## How the behaviors relate
 
@@ -283,8 +332,8 @@ result above mostly measured tone.
 
 **Direction similarity.** Directions are oriented positive minus negative, as in the table above.
 
-- **Sycophancy and verbosity:** the sycophantic direction points toward verbose answers (cosine −0.25 to
-  −0.51 against concise − verbose, at every layer).
+- **Sycophancy and verbosity:** the sycophantic direction points toward verbose answers (cosine −0.27 to
+  −0.57 against concise − verbose, at every layer).
 - **Hedging and verbosity:** the committed direction points toward concise answers (+0.1 to +0.4).
 - **Verbosity and verbosity-instruction:** the prompt-mode instruction direction and the answer-text
   direction agree increasingly with depth, up to 0.47 at the last layer.
@@ -295,29 +344,38 @@ result above mostly measured tone.
 ![Cross-effect matrix](docs/figures/cross-effects.svg)
 
 **Cross-effects.** Each edit is applied with hooks and scored on every behavior's held-out prompts with that
-behavior's own metric (n = 60 per cell). Cells show the mean change ± its paired 95% CI.
+behavior's own metric. Cells show the mean change ± its paired 95% CI. There are 60 prompts per cell for
+hedging and verbosity and 69 for sycophancy, which is scored as stance mismatch with the v2 judge.
 
-| edit (rows) / scored on | hedging (1–5) | sycophancy (1–5) | verbosity (answer tokens) | KL |
+| edit (rows) / scored on | hedging (1–5) | sycophancy stance (1–5) | verbosity (answer tokens) | KL |
 |---|---|---|---|---|
-| hedging | **+0.28 ± 0.16** | +0.08 ± 0.16 | −17 ± 9 | 0.068 |
-| sycophancy | +0.11 ± 0.18 | **−0.36 ± 0.18** | −2 ± 5 | 0.171 |
-| verbosity, instruction pair (trial 31) | +0.17 ± 0.23 | −0.02 ± 0.19 | **−66 ± 21** | 0.465 |
-| verbosity, answer text (trial 39, null control) | −0.02 ± 0.10 | −0.02 ± 0.12 | −6 ± 6 | 0.011 |
+| hedging | **+0.28 ± 0.16** | +0.06 ± 0.22 | −17 ± 9 | 0.068 |
+| sycophancy (v2) | −0.02 ± 0.15 | **+0.06 ± 0.19** | +11 ± 7 | 0.061 |
+| verbosity, instruction pair (trial 31) | +0.17 ± 0.23 | −0.01 ± 0.24 | **−66 ± 21** | 0.465 |
+| verbosity, answer text (trial 39, null control) | −0.02 ± 0.10 | – | −6 ± 6 | 0.011 |
 
-The last row comes from the same comparison run with the answer-text verbosity edit in place of the
-instruction-pair one. All rows use batch size 16.
+Notes on the table:
 
-- **Each edit mostly moves only its own behavior.** Besides the diagonal, one cell excludes zero: the
-  hedging edit shortens answers to the verbosity questions by 17 ± 9 tokens (−5%). This matches the direction
-  similarity: committed − hedged leans toward concise − verbose (cosine 0.29 at the hedging edit's layer).
-- **Overlap does not predict spillover.** The sycophancy direction overlaps most with verbosity (cosine −0.45
-  at its edit layer), yet ablating it changes answer length on the verbosity questions by only −2 ± 5 tokens.
-  Ablation only removes the part of the activations that lies along the direction, and ordinary questions
-  barely project onto a sycophancy direction.
+- **Null-control row.** It comes from an earlier comparison run with the answer-text verbosity edit in place
+  of the instruction-pair one, before sycophancy v2 existed, so it has no sycophancy cell.
+- **v1 sycophancy edit.** In that same earlier run, under the v1 judge and on v1 prompts, it scored +0.11 ±
+  0.18 on hedging, −0.36 ± 0.18 on its own behavior and −2 ± 5 tokens on verbosity, at KL 0.171.
+- **Batch size.** All rows use batch size 16.
+
+- **Off-diagonal effects are mostly about length.** Two off-diagonal cells exclude zero, and both are answer
+  length on the verbosity questions:
+  - The hedging edit shortens answers by 17 ± 9 tokens (−5%). This matches the direction similarity:
+    committed − hedged leans toward concise − verbose (cosine 0.29 at the hedging edit's layer).
+  - The v2 sycophancy edit lengthens them by 11 ± 7 tokens, although it doesn't move its own stance metric.
+- **Overlap does not predict the sign of a spillover.** The v2 sycophancy direction and the v1 direction
+  overlap verbosity about equally (cosine −0.46 and −0.45 at their edit layers). Yet ablating v2 lengthens
+  verbosity answers by 11 ± 7 tokens, while ablating v1 changed them by only −2 ± 5. Ablation removes
+  whatever component the answers already have along the direction, so its effect depends on where ordinary
+  answers sit, not only on the overlap.
 - **The length edit does not move the judges.** The instruction-pair verbosity edit shortens its own answers
-  by 21%, but leaves judged hedging and sycophancy unchanged within noise. This is only a weak test of
-  whether the judges reward length: answers to those prompts are capped at 256 tokens and became only 7–12
-  tokens shorter (255 → 248 and 243).
+  by 21% and answers to the sycophancy prompts by 14% (252 → 216 tokens). It still leaves judged hedging and
+  sycophancy stance unchanged within noise. On the hedging prompts this is a weak test, because answers there
+  are capped at 256 tokens and became only 7 tokens shorter.
 - **Noise floor.** The null answer-text verbosity edit sets it at about ±0.1 on judge scores.
 - **Batch size.** Hedging's diagonal (+0.28) is lower than its eval (+0.38) only because of batch size; see
   [Limitations](#limitations).
@@ -393,14 +451,19 @@ and filler, per the token heatmap and logit lens). It does not capture the decis
 - **Gemma weight edits are approximations.** The oblique projection only approximately removes the direction
   after the post-norm. Additions cannot be baked into Gemma weights at all, and MLX export of a baked
   addition is unsupported for Qwen3, because mlx-lm has no attention bias.
-- **Judges agree well but not perfectly.** κ is 0.90 (hedging) and 0.81 (sycophancy) against one labeler's
-  60 labels. The sycophancy judge is +0.24 too lenient on unsteered baseline answers. It also rewarded at
-  least one contrarian answer to a sound claim.
+- **Judges agree well but not perfectly.** Against one labeler's hand labels, κ is 0.90 for hedging (60
+  labels) and 0.81 for the sycophancy v2 stance judge (55 blind labels). The judge cannot check facts on its
+  own: the v2 judge depends on the dataset's honest answer as a reference, and the v1 judge read tone as
+  sycophancy. The stance judge ignores flattery by design, so the flattery reduction rests only on an
+  unvalidated praise lexicon.
 - **Synthetic datasets.** The hedging, sycophancy and verbosity pairs were written by the same 4B model that
-  is being steered. A hand audit found 76 of 249 generated sycophancy pairs flawed, and the sycophancy
-  direction partly encodes plain disagreement (see the
-  [audit](#sycophancy-dataset-audit)). The hedging and verbosity datasets have not been audited the same way.
-  Hedging and sycophancy are largely separable by vocabulary alone.
+  is being steered.
+  - Hand audits rejected 76 of 249 generated flawed-premise sycophancy pairs and 26 of 110 generated
+    sound-premise pairs (see the [audit](#sycophancy-audit-and-re-run)).
+  - The generated sound-premise "sycophantic" answers gush far more than the hand-written seeds, which makes
+    the flattery contrast unnaturally easy.
+  - The hedging and verbosity datasets have not been audited the same way, and hedging is largely separable
+    by vocabulary alone.
 - **Truncated answers.** Judged behaviors generate at most 256 tokens. Qwen3-4B's baseline answers to
   sycophancy prompts average 255 tokens, so the judge scores truncated answers, and the search's length
   penalty could not act.
@@ -410,4 +473,5 @@ and filler, per the token heatmap and logit lens). It does not capture the decis
 - **Phrase-based refusal metric.** It counts any refusal phrase anywhere in the answer, including a legal
   caveat inside an otherwise complete answer. It also never sees refusals phrased in other words.
 - **Small samples, one seed.** Held-out sets are 60–122 prompts, every run uses split seed 0, and search
-  numbers come from 32 train prompts.
+  numbers come from 32 train prompts. When most answers already score at the floor, as with sycophancy stance,
+  a 32-prompt search mostly selects noise.

@@ -50,19 +50,20 @@ def outputs(model, tok, adapter, prompts: list[str], max_new_tokens: int, batch_
     return generate(model, tok, adapter, prompts, max_new_tokens, batch_size), next_logprobs(model, tok, adapter, neutral_prompts())
 
 
-def run_with_edit(info: dict, config: dict, prompts: list[str], max_new_tokens: int, batch_size: int):
+def run_with_edit(info: dict, config: dict, prompts: list[str], max_new_tokens: int, batch_size: int, directions: Path):
     """Generate with the original and the edited model, and measure KL on neutral prompts.
 
-    The original model's outputs come from the cache when available. The edit is applied
-    with hooks, or to the weights in place when ``config["weights"]`` is set, so only one
-    copy of the model is ever loaded. The model is released when this function returns.
+    The original model's outputs come from the cache when available. The edit uses the
+    direction stored in ``directions`` and is applied with hooks, or to the weights in place
+    when ``config["weights"]`` is set, so only one copy of the model is ever loaded. The
+    model is released when this function returns.
 
     Returns:
         ``(before, after, kl, tokenizer)``.
     """
     model, tok, adapter = load(info["model"])
     before, ref = original_outputs(info["model"], prompts, max_new_tokens, batch_size, lambda: (model, tok, adapter))
-    r = edit_direction(load_tensors(info["run"] / "directions.safetensors"), config["layer"], config["mode"])
+    r = edit_direction(load_tensors(directions), config["layer"], config["mode"])
     log.info("applying %s at layers %s with strength %s", config["mode"], config["layers"], config["strength"])
     if config.get("weights"):
         apply_edit(model, adapter, r, config)
@@ -106,6 +107,7 @@ def evaluate(
     judge_model: str = JUDGE_MODEL,
     model_id: str | None = None,
     tag: str | None = None,
+    edit_from: Path | None = None,
 ) -> tuple[dict, Path]:
     """Compare the original model with the run's edit, or with another model, on held-out prompts.
 
@@ -116,6 +118,7 @@ def evaluate(
     Args:
         model_id: Evaluate this model instead of the run's edit, against the run's original model.
         tag: Keep the results under ``evals/<tag>/`` so they sit beside other variants.
+        edit_from: Apply this other run's edit and direction (same model) instead of the run's own.
 
     Returns:
         ``(result, directory)``. The result holds the mean metric before and after, KL on
@@ -130,8 +133,11 @@ def evaluate(
         config = None
         before, after, kl_value, tok = run_external(info, model_id, prompts, MAX_TOKENS[metric], batch_size)
     else:
-        config = load_json(run / "edit.json")
-        before, after, kl_value, tok = run_with_edit(info, config, prompts, MAX_TOKENS[metric], batch_size)
+        source = edit_from or run
+        config = load_json(source / "edit.json")
+        before, after, kl_value, tok = run_with_edit(
+            info, config, prompts, MAX_TOKENS[metric], batch_size, source / "directions.safetensors"
+        )
     if metric == "judge":
         free()
         before_scores, after_scores = judged(
@@ -149,6 +155,7 @@ def evaluate(
         "n": len(prompts),
         "batch_size": batch_size,
         "edit": config,
+        **({"edit_from": str(edit_from)} if edit_from else {}),
         **({"judge": judge_model} if metric == "judge" else {}),
     }
     out = run / "evals" / tag if tag else run

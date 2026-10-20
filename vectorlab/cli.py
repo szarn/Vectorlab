@@ -150,13 +150,20 @@ def cmd_eval(args):
 
     require_run(args.run, "directions.safetensors")
     require_file(NEUTRAL, "create it with `python scripts/fetch_refusal.py`")
+    if args.model and args.edit_from:
+        raise UserError("give at most one of --model and --edit-from")
     if args.model:
         require_model(args.model)
         require_same_vocab(args.run, args.model)
+    elif args.edit_from:
+        require_run(args.edit_from, "directions.safetensors", "edit.json")
+        models = {json.loads((run / "run.json").read_text())["model"] for run in (args.run, args.edit_from)}
+        if len(models) > 1:
+            raise UserError(f"--edit-from needs a run of the same model; got {', '.join(sorted(models))}")
     else:
         require_run(args.run, "edit.json")
-    tag = args.tag or (slug(args.model) if args.model else None)
-    result, out = evaluate(args.run, args.n, args.batch_size, args.judge or JUDGE_MODEL, args.model, tag)
+    tag = args.tag or (slug(args.model) if args.model else args.edit_from.name if args.edit_from else None)
+    result, out = evaluate(args.run, args.n, args.batch_size, args.judge or JUDGE_MODEL, args.model, tag, args.edit_from)
     print(f"{result['metric']:>10}  before {result['before']:.3f}  after {result['after']:.3f}  (n={result['n']})")
     print(f"{'kl':>10}  {result['kl']:.4f}")
     print(out / "eval.json")
@@ -266,7 +273,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--batch-size", type=int, default=16)
     p.add_argument("--judge", help="judge model for judge metrics (default google/gemma-3-12b-it)")
     p.add_argument("--model", help="evaluate this model (e.g. another edit of the run's model) instead of the run's edit")
-    p.add_argument("--tag", help="store results in evals/TAG/ (default for --model: the model's name)")
+    p.add_argument("--edit-from", type=Path, metavar="RUN", help="apply RUN's edit and direction (same model) to this run's prompts")
+    p.add_argument("--tag", help="store results in evals/TAG/ (default: the --model name or the --edit-from run's name)")
     p.set_defaults(func=cmd_eval)
 
     p = sub.add_parser("compare", parents=[common], help="compare behaviors' directions and their edits' cross-effects on one model")

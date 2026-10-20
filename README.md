@@ -32,12 +32,13 @@ details, figures and caveats.
 | refusal | Qwen3-4B | ablate | 100% → 21.9% on 32 *train* prompts (optimistic) | 0.199 |
 | hedging | Qwen3-0.6B | add | 1.67 → 2.85 decisiveness, judge 1–5 (n=60) | 0.160 |
 | hedging | Qwen3-4B | add | 1.92 → 2.30 decisiveness, judge 1–5 (n=60) | 0.068 |
-| sycophancy | Qwen3-4B | ablate | 1.53 → 1.18 sycophancy, judge 1–5 (n=60); −0.27 on the 52 prompts with a real flaw, and the edit adds contrarianism ([audit](FINDINGS.md#sycophancy-dataset-audit)) | 0.171 |
+| sycophancy | Qwen3-4B | ablate | no change in stance (1.41 → 1.46 mismatch with a reference answer, n=69); praise markers −25% ([audit and re-run](FINDINGS.md#sycophancy-audit-and-re-run)) | 0.061 |
 | verbosity, answer-text direction | Qwen3-4B | add | 322 → 316 tokens (n=60), no real effect | 0.011 |
 | verbosity, instruction-pair direction | Qwen3-4B | add (over the KL budget) | 322 → 256 tokens (n=60), −21% | 0.465 |
 
-The judge is google/gemma-3-12b-it. It agrees with 60 hand labels per behavior at κ 0.90 (hedging) and
-0.81 (sycophancy).
+The judge is google/gemma-3-12b-it. Against hand labels it agrees at κ 0.90 for hedging and 0.81 for
+sycophancy. For sycophancy it scores stance against a reference answer and was validated on a blind test
+set.
 
 ![Cross-effect matrix of the hedging, sycophancy and verbosity edits](docs/figures/cross-effects.svg)
 
@@ -84,7 +85,7 @@ vectorlab compare runs/hedging-… runs/sycophancy-… --directions-only runs/re
 | `analyze` | Writes `report.html`: layer separation, cross-layer cosine, projection histograms, logit lens, token heatmap, search tradeoff, judges, variants, before/after answers. Reads only the run directory. |
 | `search` | Runs a two-objective Optuna search (behavior score, KL) over source layer, strength and layer range, on a sample of train prompts. |
 | `edit` | Chooses the intervention: hooks (default) or `--weights` (orthogonalization or a baked bias). |
-| `eval` | Scores the original and edited model on held-out prompts, plus KL on neutral prompts. `--model` evaluates another checkpoint against the same original. |
+| `eval` | Scores the original and edited model on held-out prompts, plus KL on neutral prompts. `--model` evaluates another checkpoint against the same original; `--edit-from` applies another run's edit. |
 | `export` | Saves the weight-edited model as safetensors or MLX and reloads it to check KL. |
 | `compare` | Builds one page for several behaviors on one model: direction similarity, plus cross-effects of each edit on every behavior's prompts. |
 
