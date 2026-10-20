@@ -144,12 +144,6 @@ tests/
 Vectorlab is for research on how behaviors are represented inside language models, and on what editing
 those representations does.
 
-- **Edits can remove safety behavior.** Refusal ablation, in particular, produces models that comply with
-  harmful requests.
-- **Treat edited and exported models as research artifacts,** not as models to deploy.
-- **Follow each base model's terms.** For example, edited Gemma models remain subject to the Gemma Terms of
-  Use.
-
 ## License
 
 Copyright 2026 szarn
