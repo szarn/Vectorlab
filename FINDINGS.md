@@ -451,10 +451,8 @@ and filler, per the token heatmap and logit lens). It does not capture the decis
 - **Gemma weight edits are approximations.** The oblique projection only approximately removes the direction
   after the post-norm. Additions cannot be baked into Gemma weights at all, and MLX export of a baked
   addition is unsupported for Qwen3, because mlx-lm has no attention bias.
-- **Labels and audits come from Claude.** Claude, Anthropic's AI assistant, wrote the seed pairs, labeled
-  the answers used to validate the judges, and audited the generated datasets. Each item was read against a
-  rubric fixed in advance, and the project owner spot-checked a sample. There is no independent human
-  annotation.
+- **Spot-checking labels and audits.** Claude wrote the seed pairs, labeled the answers for judge
+  validation, and audited the generated datasets. This was spot-checked by the author.
 - **Judges agree well but not perfectly.** Against those single-labeler labels, κ is 0.90 for hedging (60
   labels) and 0.81 for the sycophancy v2 stance judge (55 blind labels). The judge cannot check facts on its
   own: the v2 judge depends on the dataset's honest answer as a reference, and the v1 judge read tone as
