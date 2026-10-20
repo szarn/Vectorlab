@@ -33,12 +33,13 @@ def neutral_prompts() -> list[str]:
 def original_outputs(model_id: str, prompts: list[str], max_new_tokens: int, batch_size: int, loaded):
     """The original model's answers to ``prompts`` and its next-token log-probs on the neutral prompts.
 
-    Both come from the disk cache when present. Otherwise ``loaded()`` supplies the original
+    Both come from the disk cache when present. Answers are cached per batch size, because
+    padding changes bf16 numerics and therefore greedy outputs. Otherwise ``loaded()`` supplies the original
     model as ``(model, tokenizer, adapter)`` and the results are cached.
     """
     neutral = neutral_prompts()
     before = cached_json(
-        cache_path(model_id, "gen", prompts, max_new_tokens),
+        cache_path(model_id, "gen", prompts, max_new_tokens, batch_size),
         lambda: generate(*loaded(), prompts, max_new_tokens, batch_size),
     )
     ref = cached_tensor(cache_path(model_id, "logprobs", neutral, KL_BATCH), lambda: next_logprobs(*loaded(), neutral))

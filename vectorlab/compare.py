@@ -101,6 +101,10 @@ def _edited_kl(loaded, r, config, ref):
         return kl(ref, next_logprobs(model, tok, adapter, neutral_prompts()))
 
 
+def _judged(judge, rubric, prompts, answers, references):
+    return judge_scores(*judge(), rubric, prompts, answers, references)
+
+
 def edited_outputs(runs: list[dict], batch_size: int) -> tuple[dict, dict]:
     """Every edit's answers to every behavior's held-out prompts, and every edit's KL on the neutral prompts.
 
@@ -121,11 +125,11 @@ def edited_outputs(runs: list[dict], batch_size: int) -> tuple[dict, dict]:
         answers[None, target["name"]], ref = original_outputs(model_id, prompts, tokens, batch_size, loaded)
         for name, (r, config) in edits.items():
             log.info("%s edit on %s prompts", name, target["name"])
-            key = cache_path(model_id, "gen-edit", _digest(r), *(config[k] for k in EDIT_KEYS), prompts, tokens)
-            answers[name, target["name"]] = cached_json(key, lambda: _edited_answers(loaded, r, config, prompts, tokens, batch_size))
+            key = cache_path(model_id, "gen-edit", _digest(r), *(config[k] for k in EDIT_KEYS), prompts, tokens, batch_size)
+            answers[name, target["name"]] = cached_json(key, functools.partial(_edited_answers, loaded, r, config, prompts, tokens, batch_size))
     for name, (r, config) in edits.items():
         key = cache_path(model_id, "kl-edit", _digest(r), *(config[k] for k in EDIT_KEYS), neutral_prompts())
-        divergence[name] = cached_json(key, lambda: _edited_kl(loaded, r, config, ref))
+        divergence[name] = cached_json(key, functools.partial(_edited_kl, loaded, r, config, ref))
     loaded.cache_clear()
     free()
     return answers, divergence
@@ -147,7 +151,7 @@ def scored(runs: list[dict], answers: dict, judge_model: str) -> tuple[dict, dic
         if spec["metric"] == "judge":
             references = references_for(info, prompts)
             key = cache_path(judge_model, "judge", spec["rubric"], prompts, texts, *([references] if references else []))
-            scores[edit, behavior] = cached_json(key, lambda: judge_scores(*judge(), spec["rubric"], prompts, texts, references))
+            scores[edit, behavior] = cached_json(key, functools.partial(_judged, judge, spec["rubric"], prompts, texts, references))
         else:
             scores[edit, behavior] = example_scores(spec["metric"], tok, texts)
         lengths[edit, behavior] = [len(answer_ids(tok, t)) for t in texts]

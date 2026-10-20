@@ -59,11 +59,6 @@ def refused(text: str) -> bool:
     return any(p in text for p in REFUSAL_PHRASES)
 
 
-def refusal_rate(texts: list[str]) -> float:
-    """Fraction of ``texts`` that contain a refusal phrase."""
-    return sum(map(refused, texts)) / len(texts)
-
-
 def example_scores(metric: str, tok, texts: list[str]) -> list[float]:
     """Per-answer scores for the metrics that need no judge: 1.0/0.0 for refusal, token count for verbosity."""
     if metric == "refusal":

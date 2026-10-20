@@ -4,7 +4,7 @@ import hashlib
 import json
 import logging
 from pathlib import Path
-from typing import Callable
+from collections.abc import Callable
 
 import torch
 from safetensors.torch import load_file, save_file

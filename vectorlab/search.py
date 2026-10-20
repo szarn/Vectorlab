@@ -132,7 +132,7 @@ def search(
             return judge_scores(*judge, spec["rubric"], prompts, texts, references_for(info, prompts))
         return example_scores(spec["metric"], tok, texts)
 
-    before = cached_json(cache_path(model_id, "gen", prompts, tokens), lambda: generate(model, tok, adapter, prompts, tokens, batch_size))
+    before = cached_json(cache_path(model_id, "gen", prompts, tokens, batch_size), lambda: generate(model, tok, adapter, prompts, tokens, batch_size))
     ref = cached_tensor(cache_path(model_id, "logprobs", neutral, KL_BATCH), lambda: next_logprobs(model, tok, adapter, neutral))
     baseline = {"score": mean(scores(before)), "length": mean_length(tok, before)}
 

@@ -10,20 +10,15 @@ with the behavior's hand labels when a validation file exists.
 """
 
 import argparse
-import json
 from pathlib import Path
 from statistics import mean
 
 from vectorlab.behavior import read_jsonl
 from vectorlab.cli import configure_logging
+from vectorlab.edit import describe
 from vectorlab.judge import judge_scores, references_for
 from vectorlab.model import free, load, slug
 from vectorlab.store import load_json, save_json
-
-
-def describe(edit: dict) -> str:
-    """A short human-readable label for an edit config."""
-    return f"{edit['mode']} from layer {edit['layer']} at layers {edit['layers'][0]}–{edit['layers'][-1]}, strength {edit['strength']:.3g}"
 
 
 def validated_kappa(spec: dict, judge: str) -> float | None:
@@ -42,7 +37,8 @@ def main() -> None:
 
     info = load_json(args.run / "run.json")
     spec = info["behavior"]
-    edit = describe(load_json(args.run / "eval.json")["edit"])
+    config = load_json(args.run / "eval.json")["edit"]
+    edit = describe(config)
     rows = read_jsonl(args.run / "generations.jsonl")
     prompts = [r["prompt"] for r in rows]
     references = references_for(info, prompts)
@@ -54,10 +50,11 @@ def main() -> None:
         after = judge_scores(model, tok, adapter, spec["rubric"], prompts, [r["after"] for r in rows], references)
         del model, adapter
         free()
-        entries = [e for e in entries if not (e["edit"] == edit and e["judge"] == judge)]
+        entries = [e for e in entries if not (e["judge"] == judge and (e.get("config") == config or e["edit"] == edit))]
         entries.append(
             {
                 "edit": edit,
+                "config": config,
                 "judge": judge,
                 "kappa": validated_kappa(spec, judge),
                 "before": mean(before),

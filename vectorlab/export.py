@@ -27,7 +27,6 @@ from vectorlab.model import free, load
 from vectorlab.store import load_json, load_tensors, save_json
 from vectorlab.weights import apply_edit
 
-FORMATS = ("safetensors", "mlx")
 PROCESSOR_FILES = ["preprocessor_config.json", "processor_config.json"]
 MLX_ATTENTION_BIAS = {"llama"}
 

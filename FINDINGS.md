@@ -469,7 +469,9 @@ and filler, per the token heatmap and logit lens). It does not capture the decis
   penalty could not act.
 - **Batch size changes greedy outputs.** In bf16, padding changes the numerics: the same hedging edit scores
   +0.38 at batch 32 and +0.28 at batch 16 on the same 60 prompts. That gap is about two-thirds of the CI
-  width. `eval.json` and `compare.json` now record the batch size.
+  width. `eval.json` and `compare.json` now record the batch size, and cached original-model answers are
+  keyed by it. Results in this document were produced before that fix, so in some comparisons the "before"
+  answers came from a different batch size than the "after" answers.
 - **Phrase-based refusal metric.** It counts any refusal phrase anywhere in the answer, including a legal
   caveat inside an otherwise complete answer. It also never sees refusals phrased in other words.
 - **Small samples, one seed.** Held-out sets are 60–122 prompts, every run uses split seed 0, and search

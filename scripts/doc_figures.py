@@ -13,7 +13,7 @@ import argparse
 import html
 import math
 from pathlib import Path
-from typing import Callable
+from collections.abc import Callable
 
 import numpy as np
 
@@ -170,7 +170,7 @@ def separation_figure(behaviors: list[str]) -> str:
     y = linear((0, top_value), (plot[3], plot[1]))
     body = axes(x, y, range(0, n, 5), range(0, top_value + 1, 2), plot, "layer", "Cohen's d (held-out)")
     body += legend([(b, str(i + 1), "line") for i, b in enumerate(behaviors)], 24, 78)
-    for i, (b, d) in enumerate(curves.items()):
+    for i, d in enumerate(curves.values()):
         body.append(f'<path class="line s{i + 1} draw" pathLength="1" d="{path((x(l), y(v)) for l, v in enumerate(d))}"{delay(0.25 * i)}/>')
         peak = int(np.argmax(d))
         body.append(f'<circle class="f{i + 1} ring pop" cx="{x(peak):.1f}" cy="{y(d[peak]):.1f}" r="4.5"{delay(1.4 + 0.25 * i)}/>')
@@ -323,7 +323,7 @@ def scatter_trials(series, baseline, xlabel_unit, ylabel, title, subtitle, descr
     body.append(f'<text class="note" x="{plot[2] - 4}" y="{y(baseline) - 6:.1f}" text-anchor="end">original model {baseline:.3g}</text>')
     body += legend([(label, role, "dot") for label, role, _ in series], 24, 78)
     count = 0
-    for k, (label, role, ts) in enumerate(series):
+    for _, role, ts in series:
         for t in sorted(ts, key=lambda t: t["number"]):
             body.append(f'<circle class="f{role} ring pop" cx="{x(t["kl"]):.1f}" cy="{y(t["score"]):.1f}" r="4.5"{delay(0.2 + 0.05 * count)}/>')
             count += 1
