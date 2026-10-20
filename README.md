@@ -132,3 +132,13 @@ scripts/     data fetching and expansion, judge sampling and rescoring, doc figu
 docs/        animated figures for these docs and example reports
 tests/
 ```
+
+## License
+
+Apache License 2.0; see [LICENSE](LICENSE).
+
+- **Covered:** the code, plus the datasets committed here. Those are hand-written seed pairs and pairs
+  generated from them with Qwen3-4B-Instruct-2507.
+- **Not redistributed:** the refusal and neutral prompts. `scripts/fetch_refusal.py` downloads them under
+  their own licenses: MIT for AdvBench and JailbreakBench, CC BY 4.0 for Alpaca-cleaned.
+- **Plotly.js:** the HTML reports embed Plotly.js, which keeps its MIT notice.
