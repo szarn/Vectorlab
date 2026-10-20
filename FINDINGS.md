@@ -13,16 +13,6 @@ compare`). Unless noted:
 - **KL** is the mean KL(original ‖ edited) of the next-token distribution on 100 neutral Alpaca prompts.
 - **CI** is a paired 95% interval over prompts.
 
-**Who did what.** Claude, Anthropic's AI assistant, did the manual parts of this work:
-
-- writing the seed pairs;
-- labeling the answers used to validate the judges;
-- auditing the generated datasets.
-
-Each item was read against a rubric fixed in advance, and labels were written before any judge score was
-seen. The project owner spot-checked a sample. "Labels" and "audits" below refer to this process, not to an
-independent human annotation.
-
 ## Contents
 
 1. [Behaviors and data](#behaviors-and-data)
@@ -48,7 +38,7 @@ independent human annotation.
 
 - **Refusal:** 609 harmful prompts from AdvBench and JailbreakBench (both MIT) and as many harmless Alpaca
   instructions (CC BY 4.0). `scripts/fetch_refusal.py` downloads them, so they are not committed.
-- **Hedging, sycophancy v1, verbosity:** seed pairs written by Claude (52, 51 and 48), expanded to 300 pairs each by
+- **Hedging, sycophancy v1, verbosity:** seed pairs (52, 51 and 48), expanded to 300 pairs each by
   Qwen3-4B-Instruct-2507 with `scripts/expand.py`. The expander filters its own output:
   - hedged answers must not commit, and committed answers must argue their assigned side;
   - sycophancy prompts must contain a real flaw, and only the honest answer may point it out;
@@ -62,7 +52,7 @@ independent human annotation.
   verbosity run's.
 - **Sycophancy v2 (current):** the 224 flawed-premise pairs that passed the
   [audit](#sycophancy-audit-and-re-run), plus 124 sound-premise pairs (`data/sycophancy-sound/`): 40
-  seeds written by Claude and 84 of 110 generated pairs that passed Claude's audit.
+  seeds and 84 of 110 generated pairs that passed an item-by-item audit.
   - In a sound-premise pair both answers agree with the user, who is right. The sycophantic answer gushes and
     overclaims, and the honest one agrees plainly.
   - `scripts/build_sycophancy_v2.py` assembles `data/sycophancy/v2/`. The original 300 pairs (v1) stay in
@@ -71,9 +61,8 @@ independent human annotation.
 ## Judges
 
 Judged metrics use the expected digit under a judge model's next-token distribution, restricted to the
-digits 1–5. To validate a judge, Claude labeled 60 answers per behavior against the rubric before any
-judge output was seen, and the project owner spot-checked a sample. The answers mix dataset answers, the
-model's own answers, and steered answers.
+digits 1–5. To validate a judge, 60 answers per behavior were labeled against the rubric before any judge
+output was seen. The answers mix dataset answers, the model's own answers, and steered answers.
 
 | behavior | judge | κ (binary at 3) | Spearman | MAE | verdict |
 |---|---|---|---|---|---|
@@ -84,7 +73,7 @@ model's own answers, and steered answers.
 | sycophancy v2, 1–5 sycophancy rubric with a reference | google/gemma-3-12b-it | 0.39 | 0.86 | 0.98 | rejected: about +1.3 on model answers |
 | sycophancy v2, stance rubric with a reference | google/gemma-3-12b-it | 0.81 | 0.74 | 0.18 | adopted (blind test set, n=55) |
 
-The v1 sycophancy judge's mean bias against Claude's labels:
+The v1 sycophancy judge's mean bias against the labels:
 
 | answer source | bias |
 |---|---|
@@ -226,8 +215,8 @@ under the v1 judge, which reads tone. Both edits are compared on the same prompt
 
 ### Audit of the v1 dataset
 
-Claude checked every v1 sycophancy pair against a rubric fixed before reading, and the project owner
-spot-checked a sample. The labels and a note per item are in `data/sycophancy/premise_audit.jsonl`.
+Every v1 sycophancy pair was checked against a rubric fixed before reading. The labels and a note per item
+are in `data/sycophancy/premise_audit.jsonl`.
 
 | label | meaning |
 |---|---|
@@ -238,7 +227,7 @@ spot-checked a sample. The labels and a note per item are in `data/sycophancy/pr
 
 | | ok | sound | wrong-fix | debatable |
 |---|---|---|---|---|
-| seeds written by Claude (51) | 51 | 0 | 0 | 0 |
+| seeds (51) | 51 | 0 | 0 | 0 |
 | generated pairs (249) | 173 | 17 | 25 | 34 |
 | held-out prompts (60) | 45 | 2 | 7 | 6 |
 
@@ -276,8 +265,8 @@ mildly sycophantic, and the edit turns it into disagreement.
 | ok only | 45 | 1.36 → 1.13 | −0.22 ± 0.18 |
 | sound + debatable | 8 | 2.38 → 1.44 | −0.93 ± 0.66 |
 
-**On these prompts the edit makes the model more contrarian.** Claude generated answers to all 17
-sound-premise prompts with and without the edit and labeled each one. Before and after were read side by side, so this labeling is
+**On these prompts the edit makes the model more contrarian.** Answers to all 17 sound-premise prompts were
+generated with and without the edit, and each one was labeled. Before and after were read side by side, so this labeling is
 not blind. The answers are in `data/sycophancy/sound_premise_answers.jsonl`.
 
 | answers to 17 correct claims | agrees | partly agrees | rejects |
@@ -462,15 +451,18 @@ and filler, per the token heatmap and logit lens). It does not capture the decis
 - **Gemma weight edits are approximations.** The oblique projection only approximately removes the direction
   after the post-norm. Additions cannot be baked into Gemma weights at all, and MLX export of a baked
   addition is unsupported for Qwen3, because mlx-lm has no attention bias.
-- **Judges agree well but not perfectly.** Against labels from a single labeler (Claude, spot-checked by
-  the project owner), κ is 0.90 for hedging (60 labels) and 0.81 for the sycophancy v2 stance judge (55 blind
-  labels). There is no independent human annotation. The judge cannot check facts on its
+- **Labels and audits come from Claude.** Claude, Anthropic's AI assistant, wrote the seed pairs, labeled
+  the answers used to validate the judges, and audited the generated datasets. Each item was read against a
+  rubric fixed in advance, and the project owner spot-checked a sample. There is no independent human
+  annotation.
+- **Judges agree well but not perfectly.** Against those single-labeler labels, κ is 0.90 for hedging (60
+  labels) and 0.81 for the sycophancy v2 stance judge (55 blind labels). The judge cannot check facts on its
   own: the v2 judge depends on the dataset's honest answer as a reference, and the v1 judge read tone as
   sycophancy. The stance judge ignores flattery by design, so the flattery reduction rests only on an
   unvalidated praise lexicon.
 - **Synthetic datasets.** The hedging, sycophancy and verbosity pairs were written by the same 4B model that
   is being steered.
-  - Claude's audits rejected 76 of 249 generated flawed-premise sycophancy pairs and 26 of 110 generated
+  - Audits rejected 76 of 249 generated flawed-premise sycophancy pairs and 26 of 110 generated
     sound-premise pairs (see the [audit](#sycophancy-audit-and-re-run)).
   - The generated sound-premise "sycophantic" answers gush far more than the seeds, which makes
     the flattery contrast unnaturally easy.
