@@ -1,6 +1,6 @@
 # Findings
 
-What vectorlab found on four behaviors: refusal, hedging, sycophancy and verbosity. The main model is
+What Vectorlab found on four behaviors: refusal, hedging, sycophancy and verbosity. The main model is
 Qwen/Qwen3-4B-Instruct-2507. Qwen/Qwen3-0.6B was used for the first milestones, and google/gemma-3-12b-it
 for a refusal benchmark against an existing abliterated model.
 
@@ -428,7 +428,7 @@ and filler, per the token heatmap and logit lens). It does not capture the decis
 | variant | refusal rate, held-out (n=122) | KL |
 |---|---|---|
 | original | 91.8% | – |
-| vectorlab trial 2 (ablate the layer-21 direction at layers 14–32), hooks | 8.2% | 0.199 |
+| Vectorlab trial 2 (ablate the layer-21 direction at layers 14–32), hooks | 8.2% | 0.199 |
 | trial 2, weights | 9.0% | 0.196 |
 | trial 2, weights with norms preserved | 9.0% | 0.195 |
 | trial 29 (layer-19 direction at layers 0–46), weights | 6.6% | 0.106 |
@@ -442,7 +442,7 @@ and filler, per the token heatmap and logit lens). It does not capture the decis
   one of them (2339) carried up to 97% of the raw refusal direction. Ablating the raw direction wrecked the
   model (KL 10–30) instead of removing refusal. Ablation directions therefore leave those dimensions out.
 - **Weights vs hooks.** Gemma's attention and MLP outputs pass through post-norms, so a weight edit cannot
-  be an exact orthogonalization. vectorlab uses a ridge-regularized oblique projection through the post-norm
+  be an exact orthogonalization. Vectorlab uses a ridge-regularized oblique projection through the post-norm
   scale instead. On gemma-3-4b-it, its KL to the hook ablation is 0.0037, against 0.088 for orthogonalizing
   against (1 + w) · r. On Qwen and Llama the weight edit is exact.
 
