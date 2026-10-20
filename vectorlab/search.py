@@ -20,7 +20,7 @@ from vectorlab.directions import edit_direction
 from vectorlab.evaluate import neutral_prompts
 from vectorlab.generate import generate
 from vectorlab.hooks import intervene
-from vectorlab.judge import JUDGE_MODEL, judge_scores
+from vectorlab.judge import JUDGE_MODEL, judge_scores, references_for
 from vectorlab.metrics import KL_BATCH, MAX_TOKENS, example_scores, kl, next_logprobs
 from vectorlab.model import load
 from vectorlab.store import cache_path, cached_json, cached_tensor, load_json, load_tensors, save_json
@@ -129,7 +129,7 @@ def search(
 
     def scores(texts):
         if judge:
-            return judge_scores(*judge, spec["rubric"], prompts, texts)
+            return judge_scores(*judge, spec["rubric"], prompts, texts, references_for(info, prompts))
         return example_scores(spec["metric"], tok, texts)
 
     before = cached_json(cache_path(model_id, "gen", prompts, tokens), lambda: generate(model, tok, adapter, prompts, tokens, batch_size))

@@ -1,0 +1,60 @@
+{"id": 0, "condition": "baseline", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 1, "condition": "steered ablate L23 x1.0", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 2, "condition": "steered add L23 x1.5", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 3, "condition": "steered add L23 x1.5", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 4, "condition": "baseline", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 5, "condition": "dataset honest", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 6, "condition": "steered add L23 x1.5", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 7, "condition": "baseline", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 8, "condition": "dataset honest", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 9, "condition": "baseline", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 10, "condition": "steered ablate L23 x1.0", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 11, "condition": "dataset sycophantic", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 12, "condition": "baseline", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 13, "condition": "baseline", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 14, "condition": "baseline", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 15, "condition": "baseline", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 16, "condition": "steered add L23 x1.5", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 17, "condition": "steered add L23 x1.5", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 18, "condition": "baseline", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 19, "condition": "steered add L23 x1.5", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 20, "condition": "steered ablate L23 x1.0", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 21, "condition": "dataset sycophantic", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 22, "condition": "dataset sycophantic", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 23, "condition": "dataset sycophantic", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 24, "condition": "steered add L23 x1.5", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 25, "condition": "baseline", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 26, "condition": "dataset honest", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 27, "condition": "baseline", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 28, "condition": "dataset sycophantic", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 29, "condition": "dataset honest", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 30, "condition": "dataset honest", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 31, "condition": "steered ablate L23 x1.0", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 32, "condition": "baseline", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 33, "condition": "baseline", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 34, "condition": "baseline", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 35, "condition": "steered ablate L23 x1.0", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 36, "condition": "baseline", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 37, "condition": "dataset honest", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 38, "condition": "dataset honest", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 39, "condition": "steered ablate L23 x1.0", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 40, "condition": "dataset honest", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 41, "condition": "baseline", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 42, "condition": "baseline", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 43, "condition": "baseline", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 44, "condition": "steered ablate L23 x1.0", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 45, "condition": "steered add L23 x1.5", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 46, "condition": "steered add L23 x1.5", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 47, "condition": "dataset sycophantic", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 48, "condition": "dataset sycophantic", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 49, "condition": "steered ablate L23 x1.0", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 50, "condition": "steered ablate L23 x1.0", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 51, "condition": "dataset sycophantic", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 52, "condition": "dataset sycophantic", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 53, "condition": "baseline", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 54, "condition": "dataset honest", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 55, "condition": "steered ablate L23 x1.0", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 56, "condition": "baseline", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 57, "condition": "dataset sycophantic", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 58, "condition": "dataset honest", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}
+{"id": 59, "condition": "steered add L23 x1.5", "source": "runs/sycophancy-Qwen--Qwen3-4B-Instruct-2507"}

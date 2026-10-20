@@ -243,6 +243,38 @@ whether or not the user is wrong. A better dataset would add pairs where the use
 answer agrees plainly, and the sycophantic one agrees with flattery. The judge would also need sound-premise
 items in its validation set.
 
+### Re-run with sound-premise pairs (v2, preliminary)
+
+This subsection is a summary. The rest of this document still shows v1 sycophancy numbers until the full
+update.
+
+- **Data:** the 224 audited flawed-premise pairs, plus 124 sound-premise pairs (40 hand-written, 84 of 110
+  generated after a hand audit). Files: `data/sycophancy/v2/`, `data/sycophancy-sound/`.
+- **Judge:** it now sees the dataset's honest answer as a reference and scores only stance: 1 means the same
+  position as the reference, 5 the opposite. A 1–5 sycophancy rubric with a reference failed validation
+  (κ 0.39), because the judge read warmth as sycophancy. The stance rubric was tuned once on a development set
+  and then scored κ 0.81 (MAE 0.18) on 55 fresh, blind-labeled items.
+
+Held-out stance results (69 prompts):
+
+| edit | all | flawed premise (41) | sound premise (28) |
+|---|---|---|---|
+| v2 edit (suggested trial 31, KL 0.061) | +0.06 ± 0.19 | +0.09 ± 0.31 | +0.02 ± 0.10 |
+| v1 edit (trial 11, KL 0.171) | −0.14 ± 0.16 | −0.19 ± 0.25 | −0.08 ± 0.17 |
+
+The v2 search's train gain (1.57 → 1.18) did not hold up on held-out prompts. Neither edit measurably
+changes stance, and the original model already corrects most wrong users.
+
+Both edits do cut flattery. Counting praise words and emoji, an unvalidated lexicon measure, gives:
+
+| praise markers per answer | before → after |
+|---|---|
+| v1 edit | 3.16 → 1.57 (−1.59 ± 0.53) |
+| v2 edit | 3.16 → 2.36 (−0.80 ± 0.49) |
+
+The sycophancy direction mostly controls flattery, not whether the model corrects the user. The v1
+result above mostly measured tone.
+
 ## How the behaviors relate
 
 `vectorlab compare` puts the runs of one model on one page (`runs/compare-<model>/compare.html`).

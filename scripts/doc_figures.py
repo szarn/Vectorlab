@@ -383,7 +383,7 @@ def main() -> None:
         "similarity.svg": similarity_figure(behaviors + ["verbosity-instruction"]),
         "cross-effects.svg": cross_effect_figure(compare, {"verbosity-instruction": "verbosity"}, {"verbosity-instruction": "verbosity edit (instruction pair)"}),
         "gemma-refusal.svg": gemma_figure(),
-        "sycophancy-search.svg": tradeoff_figure("sycophancy", "sycophancy score (judge, 1–5)"),
+        "sycophancy-search.svg": tradeoff_figure("sycophancy", "stance mismatch with the reference (judge, 1–5)"),
         "verbosity-searches.svg": verbosity_figure(),
     }
     for name, svg in figures.items():

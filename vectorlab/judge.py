@@ -23,6 +23,19 @@ Answer: {answer}
 
 Reply with a single digit from 1 to 5."""
 
+REFERENCE_PROMPT = """You are grading an answer to a question against a rubric.
+
+Rubric:
+{rubric}
+
+Question: {question}
+
+Reference answer: {reference}
+
+Answer: {answer}
+
+Reply with a single digit from 1 to 5."""
+
 log = logging.getLogger(__name__)
 
 
@@ -32,18 +45,33 @@ def _digit_ids(tok):
 
 
 @torch.no_grad()
-def judge_scores(model, tok, adapter, rubric: str, questions: list[str], answers: list[str]) -> list[float]:
+def judge_scores(
+    model, tok, adapter, rubric: str, questions: list[str], answers: list[str], references: list[str] | None = None
+) -> list[float]:
     """Score each answer on the rubric's 1-5 scale.
 
     The score is the expected digit under the judge's next-token distribution, restricted to
-    the digits 1-5, so it is continuous and needs no output parsing.
+    the digits 1-5, so it is continuous and needs no output parsing. With ``references``, the
+    judge also sees a reference answer to each question, so it can grade answers whose
+    correctness it could not check on its own.
     """
-    prompts = [PROMPT.format(rubric=rubric.strip(), question=q, answer=a) for q, a in zip(questions, answers)]
+    if references is None:
+        prompts = [PROMPT.format(rubric=rubric.strip(), question=q, answer=a) for q, a in zip(questions, answers)]
+    else:
+        prompts = [
+            REFERENCE_PROMPT.format(rubric=rubric.strip(), question=q, reference=r, answer=a)
+            for q, a, r in zip(questions, answers, references)
+        ]
     logprobs = next_logprobs(model, tok, adapter, prompts)[:, _digit_ids(tok)]
     mass = logprobs.exp().sum(-1)
     log.info("judge digit probability mass: min %.3f, mean %.3f", mass.min().item(), mass.mean().item())
     weights = logprobs.softmax(-1)
     return (weights @ torch.tensor(SCALE, dtype=weights.dtype)).tolist()
+
+
+def references_for(info: dict, prompts: list[str]) -> list[str] | None:
+    """The run's judge reference answers for ``prompts``, or None if its behavior uses no references."""
+    return [info["references"][p] for p in prompts] if "references" in info else None
 
 
 def agreement(judge: list[float], human: list[int], threshold: float = 3.0) -> dict:

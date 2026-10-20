@@ -31,7 +31,7 @@ from vectorlab.evaluate import eval_prompts, neutral_prompts, original_outputs
 from vectorlab.figures import kl_figure, matrix_figure, pair_cosine_figure, to_div
 from vectorlab.generate import generate
 from vectorlab.hooks import intervene
-from vectorlab.judge import JUDGE_MODEL, SCALE, judge_scores
+from vectorlab.judge import JUDGE_MODEL, SCALE, judge_scores, references_for
 from vectorlab.metrics import MAX_TOKENS, example_scores, kl, next_logprobs
 from vectorlab.model import free, load, slug
 from vectorlab.report import METRIC_LABELS, before_after, class_labels, page, section
@@ -145,8 +145,9 @@ def scored(runs: list[dict], answers: dict, judge_model: str) -> tuple[dict, dic
         info = by_name[behavior]["info"]
         spec, prompts = info["behavior"], eval_prompts(info)
         if spec["metric"] == "judge":
-            key = cache_path(judge_model, "judge", spec["rubric"], prompts, texts)
-            scores[edit, behavior] = cached_json(key, lambda: judge_scores(*judge(), spec["rubric"], prompts, texts))
+            references = references_for(info, prompts)
+            key = cache_path(judge_model, "judge", spec["rubric"], prompts, texts, *([references] if references else []))
+            scores[edit, behavior] = cached_json(key, lambda: judge_scores(*judge(), spec["rubric"], prompts, texts, references))
         else:
             scores[edit, behavior] = example_scores(spec["metric"], tok, texts)
         lengths[edit, behavior] = [len(answer_ids(tok, t)) for t in texts]

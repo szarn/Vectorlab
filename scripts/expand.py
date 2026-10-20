@@ -1,7 +1,7 @@
 """Expand hand-written seed pairs into a larger behavior dataset with a local instruct model.
 
 Usage:
-    python scripts/expand.py {hedging,sycophancy,verbosity} --n 300 [--model Qwen/Qwen3-4B-Instruct-2507] [--seed 0] [-v]
+    python scripts/expand.py {hedging,sycophancy,sycophancy-sound,verbosity} --n 300 [--model Qwen/Qwen3-4B-Instruct-2507] [--seed 0] [-v]
 
 Every recipe samples new prompts in the style of the seeds, then writes the paired answers,
 using seed answers as style examples, and drops prompts whose answers fail its filters:
@@ -10,6 +10,8 @@ using seed answers as style examples, and drops prompts whose answers fail its f
 - sycophancy: a sycophantic and a candid reply to a user who states a mistaken belief,
   shares flawed work, or describes a poor plan. The model checks that only the candid
   reply flags the problem, and the two must have similar lengths.
+- sycophancy-sound: a flattering and a plain reply to a user who is right. Both must agree
+  (neither flags a problem), so the pair differs in flattery and overclaiming only.
 - verbosity: a concise and a long-winded answer to the same everyday question, each within
   its word range and free of lists and headings.
 The outputs are the behavior's positive and negative JSONL files (seeds included) and a
@@ -274,6 +276,30 @@ Reply: {answer}
 
 Does the reply tell the user that they are mistaken or that their work or plan has a problem? Reply with only Yes or No."""
 
+SOUND_MESSAGE_PROMPT = """Here are examples of messages in which a user states a correct belief, shares good work, or describes a sensible plan, and hopes the assistant will agree:
+
+{examples}
+
+Write {count} new messages of the same kind. Each claim, piece of work, or plan must actually be correct or sound by established facts or common expert advice, be written in the user's own voice, and end by asking for agreement or approval. Cover varied topics such as science, history, math, cooking, money, home repair, writing, coding, travel, fitness, gardening, and pets. Avoid politics, religion, and anything needing detailed medical or legal advice. Write one message per line, with no numbering or extra text."""
+
+FLATTERING_PROMPT = """Reply to the user's message as an assistant who tells them what they want to hear. Agree with them, then heap exaggerated praise on them and overstate how right they are or how well things will go. Do not add any caveat or extra information. Write 35 to 60 words of plain prose. Match the style of these examples.
+
+{examples}
+
+Message: {prompt}
+Reply:"""
+
+PLAIN_PROMPT = """Reply to the user's message as a candid assistant. The user is right. In the first sentence, agree plainly without praising them. Then briefly explain why they are right, and add one useful detail or caveat if there is one. Write 35 to 60 words of plain prose. Match the style of these examples.
+
+{examples}
+
+Message: {prompt}
+Reply:"""
+
+SOUND_PROMPT = """A user wrote: {prompt}
+
+Is the belief, work, or plan in this message correct or sound, as opposed to mistaken or flawed? Reply with only Yes or No."""
+
 EVERYDAY_PROMPT = """Here are examples of everyday questions that have a short, clear answer:
 
 {examples}
@@ -356,6 +382,49 @@ def expand_sycophancy(model, tok, adapter, seeds: list[dict], n: int, rng: rando
     return records[:n]
 
 
+def actually_sound(model, tok, adapter, messages: list[str]) -> list[bool]:
+    """Ask the model whether each message's belief, work, or plan is really right (greedy Yes/No check)."""
+    checks = [SOUND_PROMPT.format(prompt=m) for m in messages]
+    return [normalize(r).startswith("yes") for r in generate(model, tok, adapter, checks, 3, batch_size=32)]
+
+
+def expand_sycophancy_sound(model, tok, adapter, seeds: list[dict], n: int, rng: random.Random) -> list[dict]:
+    """Generate flattering and plain agreeing replies to new messages that are right, keeping pairs that pass the checks.
+
+    Neither reply may tell the user they are wrong: the pair differs in flattery and
+    overclaiming, not in agreement.
+    """
+    messages = new_questions(model, tok, adapter, seeds, int(n * 2.0), rng, SOUND_MESSAGE_PROMPT, parse_messages, 1400)
+    messages = [m for m, sound in zip(messages, actually_sound(model, tok, adapter, messages)) if sound]
+    log.info("%d messages are sound", len(messages))
+    flattering = generate(
+        model,
+        tok,
+        adapter,
+        [FLATTERING_PROMPT.format(prompt=m, examples=pair_examples(seeds, rng, "sycophantic", "Message", "Reply")) for m in messages],
+        140,
+        batch_size=32,
+        temperature=0.7,
+    )
+    plain = generate(
+        model,
+        tok,
+        adapter,
+        [PLAIN_PROMPT.format(prompt=m, examples=pair_examples(seeds, rng, "honest", "Message", "Reply")) for m in messages],
+        140,
+        batch_size=32,
+        temperature=0.7,
+    )
+    flagged = flags_problem(model, tok, adapter, messages * 2, flattering + plain)
+    records = [
+        {"prompt": m, "sycophantic": f, "honest": p}
+        for m, f, p, f_flags, p_flags in zip(messages, flattering, plain, flagged[: len(messages)], flagged[len(messages) :])
+        if not f_flags and not p_flags and in_range(f, SYCOPHANCY_WORDS) and in_range(p, SYCOPHANCY_WORDS) and lengths_match([f, p])
+    ]
+    log.info("%d of %d messages passed the filters", len(records), len(messages))
+    return records[:n]
+
+
 def expand_verbosity(model, tok, adapter, seeds: list[dict], n: int, rng: random.Random) -> list[dict]:
     """Generate concise and long-winded answers to new questions, keeping pairs within their word ranges."""
     questions = new_questions(model, tok, adapter, seeds, int(n * 1.4), rng, EVERYDAY_PROMPT)
@@ -412,6 +481,7 @@ def write_sample(records: list[dict], path: Path, rng: random.Random, render, k:
 RECIPES = {
     "hedging": (expand_hedging, write_hedging, render_hedging),
     "sycophancy": (expand_sycophancy, write_pairs("sycophantic", "honest"), render_pair("sycophantic", "honest")),
+    "sycophancy-sound": (expand_sycophancy_sound, write_pairs("sycophantic", "honest"), render_pair("sycophantic", "honest")),
     "verbosity": (expand_verbosity, write_pairs("concise", "verbose"), render_pair("concise", "verbose")),
 }
 

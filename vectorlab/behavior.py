@@ -39,6 +39,11 @@ def validate_behavior(spec: dict, path: Path) -> None:
             raise UserError(f"{path}: '{key}' must be one of {', '.join(allowed)}; got {spec[key]!r}")
     if spec["metric"] == "judge" and not spec.get("rubric"):
         raise UserError(f"{path}: metric 'judge' needs a 'rubric' field")
+    if "judge_reference" in spec:
+        if spec["judge_reference"] != "negative":
+            raise UserError(f"{path}: 'judge_reference' must be 'negative'; got {spec['judge_reference']!r}")
+        if spec["metric"] != "judge" or spec["capture"] != "response":
+            raise UserError(f"{path}: 'judge_reference' needs metric 'judge' and capture 'response'")
     penalty = spec.get("length_penalty", 0)
     if not isinstance(penalty, (int, float)) or penalty < 0:
         raise UserError(f"{path}: 'length_penalty' must be a non-negative number; got {penalty!r}")

@@ -49,7 +49,7 @@ def extract(spec_path: str | Path, model_id: str, seed: int = 0, batch_size: int
     - per-layer separation (Cohen's d and probe accuracy) plus its lexical baseline;
     - the logit lens;
     - per-token projections for a few held-out examples;
-    - the held-out records.
+    - the held-out records, and the judge's reference answers when the behavior uses them.
 
     Returns:
         ``(run_path, cohens_d)``, where ``cohens_d`` has one held-out effect size per layer.
@@ -81,16 +81,16 @@ def extract(spec_path: str | Path, model_id: str, seed: int = 0, batch_size: int
     save_json(out / "separation.json", {"cohens_d": separation.tolist(), "probe_acc": probes, "lexical": lexical})
     save_json(out / "logit_lens.json", logit_lens(tok, adapter, directions))
     save_json(out / "tokens.json", tokens)
-    save_json(
-        out / "run.json",
-        {
-            "model": model_id,
-            "seed": seed,
-            "behavior": spec,
-            "counts": {name: len(records) for name, records in data.items()},
-            "train_prompts": sorted({base_prompt(r) for r in data["train_pos"]}),
-            "test": {"pos": data["test_pos"], "neg": data["test_neg"]},
-        },
-    )
+    info = {
+        "model": model_id,
+        "seed": seed,
+        "behavior": spec,
+        "counts": {name: len(records) for name, records in data.items()},
+        "train_prompts": sorted({base_prompt(r) for r in data["train_pos"]}),
+        "test": {"pos": data["test_pos"], "neg": data["test_neg"]},
+    }
+    if spec.get("judge_reference"):
+        info["references"] = {base_prompt(r): r["answer"] for r in data["train_neg"] + data["test_neg"]}
+    save_json(out / "run.json", info)
     log.info("wrote %s", out)
     return out, separation

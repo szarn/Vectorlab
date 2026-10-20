@@ -72,7 +72,11 @@ def main() -> None:
 
     rng.shuffle(items)
     directory = Path(spec["positive"]).parent
-    write_jsonl(directory / "judge_sample.jsonl", [{"id": i, "question": q, "answer": a} for i, (q, a, _) in enumerate(items)])
+    references = info.get("references", {})
+    write_jsonl(
+        directory / "judge_sample.jsonl",
+        [{"id": i, "question": q, "answer": a, **({"reference": references[q]} if q in references else {})} for i, (q, a, _) in enumerate(items)],
+    )
     write_jsonl(directory / "judge_sample_key.jsonl", [{"id": i, "condition": c, "source": str(args.run)} for i, (_, _, c) in enumerate(items)])
     print(f"{len(items)} items -> {directory / 'judge_sample.jsonl'}")
 

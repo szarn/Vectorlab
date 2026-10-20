@@ -4,7 +4,8 @@ Usage:
     python scripts/validate_judge.py behaviors/hedging.yaml data/hedging \
         [--judge MODEL] [--labels judge_labels.jsonl] [-v]
 
-Reads ``judge_sample.jsonl`` (id, question, answer) and a labels file (id, label) from the
+Reads ``judge_sample.jsonl`` (id, question, answer, and a reference answer when the behavior
+uses one) and a labels file (id, label) from the
 data directory, scores the sample with the judge, and reports agreement overall and by
 source. Sources come from ``judge_sample_key.jsonl`` (the first word of each item's
 condition, such as ``4B`` or ``dataset``). Writes
@@ -56,6 +57,7 @@ def main() -> None:
         spec["rubric"],
         [sample[i]["question"] for i in ids],
         [sample[i]["answer"] for i in ids],
+        [sample[i]["reference"] for i in ids] if "reference" in sample[ids[0]] else None,
     )
     items = [{"id": i, "label": labels[i], "judge": s} for i, s in zip(ids, scores)]
     result = {

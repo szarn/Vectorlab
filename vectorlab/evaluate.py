@@ -9,7 +9,7 @@ from vectorlab.behavior import base_prompt, read_jsonl, write_jsonl
 from vectorlab.directions import edit_direction
 from vectorlab.generate import generate
 from vectorlab.hooks import intervene
-from vectorlab.judge import JUDGE_MODEL, judge_scores
+from vectorlab.judge import JUDGE_MODEL, judge_scores, references_for
 from vectorlab.metrics import KL_BATCH, MAX_TOKENS, example_scores, kl, next_logprobs
 from vectorlab.model import free, load
 from vectorlab.store import cache_path, cached_json, cached_tensor, load_json, load_tensors, save_json
@@ -91,10 +91,12 @@ def run_external(info: dict, model_id: str, prompts: list[str], max_new_tokens: 
     return before, after, kl(ref, new), tok
 
 
-def judged(rubric: str, prompts: list[str], *answer_sets: list[str], judge_model: str = JUDGE_MODEL) -> list[list[float]]:
-    """Load the judge once and score each set of answers to ``prompts`` on ``rubric``."""
+def judged(
+    rubric: str, prompts: list[str], *answer_sets: list[str], judge_model: str = JUDGE_MODEL, references: list[str] | None = None
+) -> list[list[float]]:
+    """Load the judge once and score each set of answers to ``prompts`` on ``rubric``, with optional reference answers."""
     model, tok, adapter = load(judge_model)
-    return [judge_scores(model, tok, adapter, rubric, prompts, answers) for answers in answer_sets]
+    return [judge_scores(model, tok, adapter, rubric, prompts, answers, references) for answers in answer_sets]
 
 
 def evaluate(
@@ -132,7 +134,9 @@ def evaluate(
         before, after, kl_value, tok = run_with_edit(info, config, prompts, MAX_TOKENS[metric], batch_size)
     if metric == "judge":
         free()
-        before_scores, after_scores = judged(spec["rubric"], prompts, before, after, judge_model=judge_model)
+        before_scores, after_scores = judged(
+            spec["rubric"], prompts, before, after, judge_model=judge_model, references=references_for(info, prompts)
+        )
     else:
         before_scores, after_scores = example_scores(metric, tok, before), example_scores(metric, tok, after)
 

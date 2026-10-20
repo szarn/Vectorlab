@@ -16,7 +16,7 @@ from statistics import mean
 
 from vectorlab.behavior import read_jsonl
 from vectorlab.cli import configure_logging
-from vectorlab.judge import judge_scores
+from vectorlab.judge import judge_scores, references_for
 from vectorlab.model import free, load, slug
 from vectorlab.store import load_json, save_json
 
@@ -40,16 +40,18 @@ def main() -> None:
     args = parser.parse_args()
     configure_logging(args.verbose)
 
-    spec = load_json(args.run / "run.json")["behavior"]
+    info = load_json(args.run / "run.json")
+    spec = info["behavior"]
     edit = describe(load_json(args.run / "eval.json")["edit"])
     rows = read_jsonl(args.run / "generations.jsonl")
     prompts = [r["prompt"] for r in rows]
+    references = references_for(info, prompts)
     path = args.run / "judges.json"
     entries = load_json(path) if path.exists() else []
     for judge in args.judges:
         model, tok, adapter = load(judge)
-        before = judge_scores(model, tok, adapter, spec["rubric"], prompts, [r["before"] for r in rows])
-        after = judge_scores(model, tok, adapter, spec["rubric"], prompts, [r["after"] for r in rows])
+        before = judge_scores(model, tok, adapter, spec["rubric"], prompts, [r["before"] for r in rows], references)
+        after = judge_scores(model, tok, adapter, spec["rubric"], prompts, [r["after"] for r in rows], references)
         del model, adapter
         free()
         entries = [e for e in entries if not (e["edit"] == edit and e["judge"] == judge)]
