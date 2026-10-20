@@ -37,9 +37,9 @@ details, figures and caveats.
 | verbosity, answer-text direction | Qwen3-4B | add | 322 → 316 tokens (n=60), no real effect | 0.011 |
 | verbosity, instruction-pair direction | Qwen3-4B | add (over the KL budget) | 322 → 256 tokens (n=60), −21% | 0.465 |
 
-The judge is google/gemma-3-12b-it. Against hand labels it agrees at κ 0.90 for hedging and 0.81 for
-sycophancy. For sycophancy it scores stance against a reference answer and was validated on a blind test
-set.
+The judge is google/gemma-3-12b-it. Against labels written by Claude and spot-checked by the project
+owner, it agrees at κ 0.90 for hedging and 0.81 for sycophancy. For sycophancy it scores stance against a
+reference answer, and it was validated on a blind test set.
 
 ![Cross-effect matrix of the hedging, sycophancy and verbosity edits](docs/figures/cross-effects.svg)
 
@@ -49,7 +49,12 @@ download them and open them in a browser.
 
 ## Install
 
-Requires Python 3.12+. A Mac with Apple Silicon is assumed: models load on `mps`.
+Requires Python 3.12+.
+
+- **Device:** models load on CUDA, Apple MPS or CPU, whichever is available first. Set
+  `VECTORLAB_DEVICE=cpu` (or another device) to override.
+- **Precision:** models load in bf16. CPU works but is slow for 4B+ models.
+- **Tested on:** Apple Silicon (MPS) only, so other backends are untested.
 
 ```sh
 uv venv --python 3.12
@@ -134,13 +139,24 @@ docs/        animated figures for these docs and example reports
 tests/
 ```
 
+## Intended use
+
+Vectorlab is for research on how behaviors are represented inside language models, and on what editing
+those representations does.
+
+- **Edits can remove safety behavior.** Refusal ablation, in particular, produces models that comply with
+  harmful requests.
+- **Treat edited and exported models as research artifacts,** not as models to deploy.
+- **Follow each base model's terms.** For example, edited Gemma models remain subject to the Gemma Terms of
+  Use.
+
 ## License
 
 Copyright 2026 szarn
 
 Apache License 2.0; see [LICENSE](LICENSE).
 
-- **Covered:** the code, plus the datasets committed here. Those are hand-written seed pairs and pairs
+- **Covered:** the code, plus the datasets committed here. Those are seed pairs written by Claude and pairs
   generated from them with Qwen3-4B-Instruct-2507.
 - **Not redistributed:** the refusal and neutral prompts. `scripts/fetch_refusal.py` downloads them under
   their own licenses: MIT for AdvBench and JailbreakBench, CC BY 4.0 for Alpaca-cleaned.
