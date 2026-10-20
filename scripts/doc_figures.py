@@ -377,18 +377,39 @@ BANNER_STYLE = """
 .tagline {{ fill: var(--ink2); font-size: 22px; }}
 .pipeline {{ fill: var(--muted); font-size: 15px; font-family: ui-monospace, Menlo, monospace; }}
 .formula {{ fill: var(--ink2); font-size: 15px; font-family: ui-monospace, Menlo, monospace; }}
+.space-label {{ fill: var(--muted); font-size: 13px; letter-spacing: .3px; }}
+.axis-label {{ fill: var(--ink2); font-size: 14px; font-style: italic; }}
 .mark {{ fill: var(--ink); font-size: 18px; font-weight: 600; paint-order: stroke; stroke: var(--surface); stroke-width: 5px; stroke-linejoin: round; }}
-.floor {{ stroke: var(--grid); stroke-width: 1; fill: none; }}
-.wall {{ stroke: var(--axis); stroke-width: 1; fill: none; }}
-.shadow {{ fill: var(--ink2); opacity: 0.16; }}
+.wall {{ fill: var(--grid); fill-opacity: .28; stroke: none; }}
+.gridline {{ stroke: var(--grid); stroke-width: 1; fill: none; }}
+.edge {{ stroke: var(--axis); stroke-width: 1.2; fill: none; }}
+.axis {{ stroke: var(--ink2); stroke-width: 1.6; fill: none; stroke-linecap: round; }}
+.axis-head {{ fill: var(--ink2); }}
+.shadow {{ fill: var(--ink2); opacity: .2; }}
+@media (prefers-color-scheme: dark) {{ .shadow {{ fill: #000000; opacity: .55; }} }}
+.sphere {{ stroke: var(--surface); stroke-width: 1.2; }}
 .mean {{ fill: var(--surface); stroke-width: 3; }}
-.plane {{ fill: var(--s1); fill-opacity: 0.10; stroke: var(--s1); stroke-opacity: 0.55; stroke-width: 1.5; opacity: 0; animation: plane {cycle}s ease-in-out {start}s infinite; }}
-.collapse {{ animation: collapse {cycle}s ease-in-out {start}s infinite; }}
+.halo {{ fill: none; stroke-width: 2; transform-box: fill-box; transform-origin: center; animation: halo 2.6s ease-out 2s infinite; opacity: 0; }}
+.trace {{ stroke: var(--ink2); stroke-width: 1; opacity: 0; animation: trace {cycle}s ease-in-out {start}s infinite; }}
+.plane {{ opacity: 0; transform-box: fill-box; transform-origin: center; animation: plane {cycle}s ease-in-out {start}s infinite; }}
+.plane-fill {{ fill: var(--s1); fill-opacity: .12; stroke: var(--s1); stroke-opacity: .6; stroke-width: 1.5; }}
+.plane-grid {{ stroke: var(--s1); stroke-opacity: .25; stroke-width: 1; }}
+.move {{ animation: move {cycle}s ease-in-out {start}s infinite; }}
 .vector {{ animation: vector {cycle}s ease-in-out {start}s infinite; }}
-@keyframes collapse {{ 0%, 30% {{ transform: translate(0, 0); }} 45%, 70% {{ transform: translate(var(--dx), var(--dy)); }} 85%, 100% {{ transform: translate(0, 0); }} }}
-@keyframes plane {{ 0%, 26% {{ opacity: 0; }} 40%, 74% {{ opacity: 1; }} 88%, 100% {{ opacity: 0; }} }}
-@keyframes vector {{ 0%, 30% {{ opacity: 1; }} 45%, 70% {{ opacity: 0.12; }} 85%, 100% {{ opacity: 1; }} }}
-@media (prefers-reduced-motion: reduce) {{ .plane {{ opacity: 0; }} }}
+.rise {{ animation: rise .9s cubic-bezier(.2, .7, .2, 1) both; }}
+.formula-ablate {{ opacity: 0; animation: ablate-label {cycle}s ease-in-out {start}s infinite; }}
+.formula-steer {{ opacity: 0; animation: steer-label {cycle}s ease-in-out {start}s infinite; }}
+.stop-hi1 {{ stop-color: var(--s1hi); }} .stop-1 {{ stop-color: var(--s1); }} .stop-lo1 {{ stop-color: var(--s1lo); }}
+.stop-hi2 {{ stop-color: var(--s2hi); }} .stop-2 {{ stop-color: var(--s2); }} .stop-lo2 {{ stop-color: var(--s2lo); }}
+@keyframes move {{ 0%, 24% {{ transform: translate(0, 0); }} 34%, 50% {{ transform: translate(var(--dx), var(--dy)); }} 58%, 64% {{ transform: translate(0, 0); }} 74%, 88% {{ transform: translate(var(--sx), var(--sy)); }} 96%, 100% {{ transform: translate(0, 0); }} }}
+@keyframes plane {{ 0%, 8% {{ opacity: 0; transform: scale(.15); }} 16%, 50% {{ opacity: 1; transform: scale(1); }} 58%, 100% {{ opacity: 0; transform: scale(1); }} }}
+@keyframes trace {{ 0%, 15% {{ opacity: 0; }} 21%, 30% {{ opacity: .55; }} 40%, 100% {{ opacity: 0; }} }}
+@keyframes vector {{ 0%, 24% {{ opacity: 1; }} 34%, 50% {{ opacity: .15; }} 58%, 100% {{ opacity: 1; }} }}
+@keyframes ablate-label {{ 0%, 5% {{ opacity: 0; }} 10%, 55% {{ opacity: 1; }} 60%, 100% {{ opacity: 0; }} }}
+@keyframes steer-label {{ 0%, 60% {{ opacity: 0; }} 65%, 93% {{ opacity: 1; }} 98%, 100% {{ opacity: 0; }} }}
+@keyframes rise {{ from {{ opacity: 0; transform: translate(var(--rx), var(--ry)); }} to {{ opacity: 1; transform: translate(0, 0); }} }}
+@keyframes halo {{ 0% {{ opacity: .7; transform: scale(1); }} 100% {{ opacity: 0; transform: scale(2.6); }} }}
+@media (prefers-reduced-motion: reduce) {{ .formula-ablate {{ opacity: 1; }} }}
 """
 
 ARROW_GLYPHS = {
@@ -413,13 +434,14 @@ def _head(tip, toward, size: float) -> str:
     return f"{x1:.1f},{y1:.1f} {bx - uy * size * 0.55:.1f},{by + ux * size * 0.55:.1f} {bx + uy * size * 0.55:.1f},{by - ux * size * 0.55:.1f}"
 
 
-def _arrow(points, line_class: str, head_class: str, head: float, width: float, wait: float) -> str:
+def _arrow(points, line_class: str, head_class: str, head: float, width: float, wait: float, stroke: str = "") -> str:
     """A polyline arrow that draws in after ``wait`` seconds, with its filled head appearing at the end."""
     (x1, y1), (x0, y0) = points[-1], points[-2]
     length = math.hypot(x1 - x0, y1 - y0)
     trimmed = points[:-1] + [(x1 - (x1 - x0) / length * head * 0.6, y1 - (y1 - y0) / length * head * 0.6)]
+    paint = f' stroke="{stroke}"' if stroke else ""
     return (
-        f'<path class="{line_class} draw" pathLength="1" style="stroke-width: {width}; animation-delay: {wait:.2f}s" d="{path(trimmed)}"/>'
+        f'<path class="{line_class} draw" pathLength="1"{paint} style="stroke-width: {width}; animation-delay: {wait:.2f}s" d="{path(trimmed)}"/>'
         f'<polygon class="{head_class} fade" style="animation-delay: {wait + 0.9:.2f}s" points="{_head(points[-1], points[-2], head)}"/>'
     )
 
@@ -437,33 +459,52 @@ def arrow_title(text: str, x: float, baseline: float, scale: float = 1.0, gap: f
     return out
 
 
-def banner_figure(seed: int = 7, cycle: float = 9.0, start: float = 2.6) -> str:
-    """The README banner: activations in a 3D space, their mean-difference vector, and an ablation loop.
+def _shades(theme: dict, dark: bool) -> str:
+    """Highlight and shadow tones of the two series colors, for the sphere gradients."""
+    hi, lo = (0.45, 0.45) if dark else (0.55, 0.3)
+    return " ".join(
+        f"--s{k}hi: {_mix(theme[f's{k}'], '#ffffff', hi)}; --s{k}lo: {_mix(theme[f's{k}'], '#000000', lo)};" for k in (1, 2)
+    )
 
-    Two classes of points sit above a floor grid, each with a shadow, and the direction
-    r = mean(+) - mean(-) draws in. Then, on a loop, every point loses its component along r and
-    lands on the plane through the class midpoint perpendicular to r, the edit Vectorlab applies
-    to a behavior direction. On the right, the title is drawn with arrows.
+
+def banner_figure(seed: int = 7, cycle: float = 14.0, start: float = 3.0) -> str:
+    """The README banner: activations in a 3D space, their mean-difference vector, and the two edits.
+
+    A 3D chart with gridded walls holds two classes of points, drawn as shaded spheres with floor
+    shadows. The grid draws in, the points rise from their shadows, and r = mean(+) - mean(-)
+    draws in. Then a loop shows Vectorlab's two interventions:
+    - ablate: the plane perpendicular to r grows at the class midpoint, traces show each point's
+      component along r, and every point slides along its trace onto the plane;
+    - steer: the negative class moves along r toward the positive class.
+    The formula under the chart follows the loop. On the right, the title is drawn with arrows.
     """
     width, height = 1200, 320
     rng = np.random.default_rng(seed)
-    floor = -0.8
+    floor, top = -0.8, 0.9
 
     def raw(p):
         x, y, z = p
         return np.array([(x - z) * 0.92, (x + z) * 0.34 - y * 0.95])
 
-    corners = [np.array(c, float) for c in ((-1, floor, -1), (1, floor, -1), (1, floor, 1), (-1, floor, 1), (-1, 0.9, -1), (1, 0.9, -1), (-1, 0.9, 1))]
-    lo, hi = np.min([raw(c) for c in corners], 0), np.max([raw(c) for c in corners], 0)
-    box_lo, box_hi = np.array([60.0, 22.0]), np.array([560.0, 270.0])
+    frame = [np.array(c, float) for c in ((-1, floor, -1), (1, floor, -1), (1, floor, 1), (-1, floor, 1), (-1, top, -1), (1, top, -1), (-1, top, 1))]
+    lo, hi = np.min([raw(c) for c in frame], 0), np.max([raw(c) for c in frame], 0)
+    box_lo, box_hi = np.array([70.0, 30.0]), np.array([560.0, 266.0])
     scale = min((box_hi - box_lo) / (hi - lo))
     offset = box_lo + ((box_hi - box_lo) - (hi - lo) * scale) / 2 - lo * scale
 
     def screen(p):
         return raw(p) * scale + offset
 
+    def line(a, b, css, extra=""):
+        (x1, y1), (x2, y2) = screen(a), screen(b)
+        return f'<line class="{css}"{extra} x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}"/>'
+
+    def polygon(points, css):
+        return f'<path class="{css}" d="{path(screen(p) for p in points)} Z"/>'
+
     pos_mean, neg_mean = np.array([0.66, 0.48, -0.12]), np.array([-0.68, -0.38, 0.22])
-    unit = (pos_mean - neg_mean) / np.linalg.norm(pos_mean - neg_mean)
+    difference = pos_mean - neg_mean
+    unit = difference / np.linalg.norm(difference)
     middle = (pos_mean + neg_mean) / 2
     e1 = np.cross(unit, [0.0, 1.0, 0.0])
     e1 /= np.linalg.norm(e1)
@@ -472,50 +513,103 @@ def banner_figure(seed: int = 7, cycle: float = 9.0, start: float = 2.6) -> str:
     def ablated(p):
         return p - ((p - middle) @ unit) * unit
 
-    def polyline(points, css):
-        return f'<path class="{css}" d="{path(screen(p) for p in points)}"/>'
+    def delta(a, b):
+        return screen(b) - screen(a)
 
-    body = []
+    body = [
+        '<defs><filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.4"/></filter>'
+        + "".join(
+            f'<radialGradient id="sphere{k}" cx="35%" cy="30%" r="75%"><stop offset="0" class="stop-hi{k}"/>'
+            f'<stop offset=".55" class="stop-{k}"/><stop offset="1" class="stop-lo{k}"/></radialGradient>'
+            for k in (1, 2)
+        )
+    ]
+    tail, tip = screen(neg_mean + unit * 0.07), screen(pos_mean - unit * 0.07)
+    body.append(
+        f'<linearGradient id="rgrad" gradientUnits="userSpaceOnUse" x1="{tail[0]:.1f}" y1="{tail[1]:.1f}" x2="{tip[0]:.1f}" y2="{tip[1]:.1f}">'
+        '<stop offset="0" class="stop-2"/><stop offset="1" class="stop-1"/></linearGradient></defs>'
+    )
+
+    body.append(polygon([(-1, floor, -1), (1, floor, -1), (1, top, -1), (-1, top, -1)], "wall"))
+    body.append(polygon([(-1, floor, -1), (-1, floor, 1), (-1, top, 1), (-1, top, -1)], "wall"))
+    gridlines = []
     for t in np.linspace(-1, 1, 6):
-        body.append(polyline([(t, floor, -1), (t, floor, 1)], "floor"))
-        body.append(polyline([(-1, floor, t), (1, floor, t)], "floor"))
-    for edge in (((-1, floor, -1), (-1, 0.9, -1)), ((1, floor, -1), (1, 0.9, -1)), ((-1, floor, 1), (-1, 0.9, 1)),
-                 ((-1, 0.9, -1), (1, 0.9, -1)), ((-1, 0.9, -1), (-1, 0.9, 1))):
-        body.append(polyline(edge, "wall"))
+        gridlines += [((t, floor, -1), (t, floor, 1)), ((-1, floor, t), (1, floor, t))]
+        gridlines += [((t, floor, -1), (t, top, -1)), ((-1, floor, t), (-1, top, t))]
+    for y in np.linspace(floor, top, 5):
+        gridlines += [((-1, y, -1), (1, y, -1)), ((-1, y, -1), (-1, y, 1))]
+    for i, (a, b) in enumerate(gridlines):
+        body.append(line(a, b, "gridline draw", f' pathLength="1" style="animation-delay: {0.01 * i:.2f}s"'))
+    for a, b in (((1, floor, -1), (1, floor, 1)), ((-1, floor, 1), (1, floor, 1)), ((1, floor, -1), (1, top, -1)), ((-1, floor, 1), (-1, top, 1)), ((-1, top, -1), (1, top, -1)), ((-1, top, -1), (-1, top, 1))):
+        body.append(line(a, b, "edge"))
+
+    corner = np.array([-1, floor, 1], float)
+    for axis, name, nudge in ((np.array([1.0, 0, 0]), "x₁", (-4.0, 18.0)), (np.array([0, 1.0, 0]), "x₂", (-22.0, 4.0)), (np.array([0, 0, -1.0]), "x₃", (-18.0, -4.0))):
+        end = corner + axis * 0.6
+        body.append(_arrow([tuple(screen(corner)), tuple(screen(end))], "axis", "axis-head", 8, 1.6, 0.6))
+        label = screen(corner + axis * 0.5) + np.array(nudge)
+        body.append(f'<text class="axis-label fade" style="animation-delay: 1.2s" x="{label[0]:.1f}" y="{label[1]:.1f}">{name}</text>')
 
     corners = [middle + a * e1 * 0.62 + b * e2 * 0.62 for a, b in ((-1, -1), (1, -1), (1, 1), (-1, 1))]
-    body.append(f'<path class="plane" d="{path(screen(c) for c in corners)} Z"/>')
+    grid = "".join(
+        line(middle + t * e1 * 0.62 - e2 * 0.62, middle + t * e1 * 0.62 + e2 * 0.62, "plane-grid")
+        + line(middle - e1 * 0.62 + t * e2 * 0.62, middle + e1 * 0.62 + t * e2 * 0.62, "plane-grid")
+        for t in (-0.5, 0.0, 0.5)
+    )
+    body.append(f'<g class="plane">{polygon(corners, "plane-fill")}{grid}</g>')
 
-    points = []
-    for center, role in ((neg_mean, "2"), (pos_mean, "1")):
-        for p in center + np.clip(rng.normal(0, 1, (22, 3)), -2, 2) * 0.17:
-            points.append((p, role))
-    for i, (p, role) in enumerate(sorted(points, key=lambda item: item[0][0] + item[0][2])):
+    points = [(p, k) for center, k in ((neg_mean, 2), (pos_mean, 1)) for p in center + np.clip(rng.normal(0, 1, (30, 3)), -2, 2) * 0.16]
+    points.sort(key=lambda item: item[0][0] + item[0][2])
+    steer = 0.8 * difference
+    shadows, traces, spheres = [], [], []
+    for i, (p, k) in enumerate(points):
         q = ablated(p)
-        here, after = screen(p), screen(q)
-        shadow, shadow_after = screen((p[0], floor, p[2])), screen((q[0], floor, q[2]))
+        moved = p + steer if k == 2 else p
+        ground = np.array([p[0], floor, p[2]])
+        here = screen(p)
         depth = (p[0] + p[2] + 2) / 4
-        body.append(
-            f'<g class="fade" style="animation-delay: {0.15 + 0.03 * i:.2f}s">'
-            f'<ellipse class="shadow collapse" style="--dx: {shadow_after[0] - shadow[0]:.1f}px; --dy: {shadow_after[1] - shadow[1]:.1f}px" '
-            f'cx="{shadow[0]:.1f}" cy="{shadow[1]:.1f}" rx="4.5" ry="1.8"/>'
-            f'<circle class="f{role} ring collapse" style="--dx: {after[0] - here[0]:.1f}px; --dy: {after[1] - here[1]:.1f}px" '
-            f'cx="{here[0]:.1f}" cy="{here[1]:.1f}" r="{3.6 + 2.2 * depth:.1f}"/></g>'
+        wait = 0.9 + 0.025 * i
+        dx, dy = delta(p, q)
+        sx, sy = delta(p, moved)
+        gx, gy = delta(ground, (q[0], floor, q[2]))
+        hx, hy = delta(ground, (moved[0], floor, moved[2]))
+        rx, ry = delta(p, ground)
+        g = screen(ground)
+        shadows.append(
+            f'<g class="fade" style="animation-delay: {wait:.2f}s"><ellipse class="shadow move" filter="url(#soft)" '
+            f'style="--dx: {gx:.1f}px; --dy: {gy:.1f}px; --sx: {hx:.1f}px; --sy: {hy:.1f}px" '
+            f'cx="{g[0]:.1f}" cy="{g[1]:.1f}" rx="{4 + 2 * depth:.1f}" ry="{1.6 + 0.8 * depth:.1f}"/></g>'
         )
+        traces.append(line(p, q, "trace"))
+        spheres.append(
+            f'<g class="rise" style="--rx: {rx:.1f}px; --ry: {ry:.1f}px; animation-delay: {wait:.2f}s">'
+            f'<circle class="sphere move" fill="url(#sphere{k})" opacity="{0.72 + 0.28 * depth:.2f}" '
+            f'style="--dx: {dx:.1f}px; --dy: {dy:.1f}px; --sx: {sx:.1f}px; --sy: {sy:.1f}px" '
+            f'cx="{here[0]:.1f}" cy="{here[1]:.1f}" r="{3.4 + 2.8 * depth:.1f}"/></g>'
+        )
+    body += shadows + traces + spheres
 
-    tail, tip = screen(neg_mean + unit * 0.06), screen(pos_mean - unit * 0.06)
-    body.append(f'<g class="vector">{_arrow([tuple(tail), tuple(tip)], "line s4", "f4", 16, 3.5, 0.7)}</g>')
-    for center, role, sign, side in ((neg_mean, "2", "−", -1), (pos_mean, "1", "+", 1)):
-        here, merged = screen(center), screen(middle)
+    body.append(
+        '<g class="vector">'
+        + _arrow([tuple(tail), tuple(tip)], "line", "f1", 16, 3.6, 2.2, stroke="url(#rgrad)")
+        + "</g>"
+    )
+    for center, k, sign, side in ((neg_mean, 2, "−", -1), (pos_mean, 1, "+", 1)):
+        here = screen(center)
+        dx, dy = delta(center, middle)
+        sx, sy = delta(center, center + steer) if k == 2 else (0.0, 0.0)
         body.append(
-            f'<g class="fade" style="animation-delay: 1.1s"><g class="collapse" style="--dx: {merged[0] - here[0]:.1f}px; --dy: {merged[1] - here[1]:.1f}px">'
-            f'<circle class="mean s{role}" cx="{here[0]:.1f}" cy="{here[1]:.1f}" r="8"/>'
-            f'<text class="mark" x="{here[0] + (52 if side > 0 else -80):.1f}" y="{here[1] + 6:.1f}">μ{sign}</text></g></g>'
+            f'<g class="fade" style="animation-delay: 2.0s"><g class="move" style="--dx: {dx:.1f}px; --dy: {dy:.1f}px; --sx: {sx:.1f}px; --sy: {sy:.1f}px">'
+            f'<circle class="halo s{k}" cx="{here[0]:.1f}" cy="{here[1]:.1f}" r="8"/>'
+            f'<circle class="mean s{k}" cx="{here[0]:.1f}" cy="{here[1]:.1f}" r="8"/>'
+            f'<text class="mark" x="{here[0] + (34 if side > 0 else -66):.1f}" y="{here[1] + 6:.1f}">μ{sign}</text></g></g>'
         )
-    label = (screen(middle) + np.array([10.0, -16.0]))
-    body.append(f'<g class="vector"><text class="mark fade" style="animation-delay: 1.5s" x="{label[0]:.1f}" y="{label[1]:.1f}">r</text></g>')
-    body.append('<text class="formula fade" style="animation-delay: 1.6s" x="56" y="300">r = μ+ − μ−</text>')
-    body.append('<text class="formula fade" style="animation-delay: 1.8s" x="250" y="300">ablate:  x ← x − (x·r) r</text>')
+    label = screen(middle) + np.array([8.0, -18.0])
+    body.append(f'<g class="vector"><text class="mark fade" style="animation-delay: 2.6s" x="{label[0]:.1f}" y="{label[1]:.1f}">r</text></g>')
+    body.append('<text class="space-label fade" style="animation-delay: 0.6s" x="40" y="28">residual stream · layer ℓ</text>')
+    body.append('<text class="formula fade" style="animation-delay: 2.4s" x="40" y="302">r = μ+ − μ−</text>')
+    body.append('<text class="formula formula-ablate" x="196" y="302">ablate:  x ← x − (x·r) r</text>')
+    body.append('<text class="formula formula-steer" x="196" y="302">steer:   x ← x + α r</text>')
 
     left = 646
     body += arrow_title("Vectorlab", left, 148, scale=1.0, gap=13, wait=0.3)
@@ -523,12 +617,13 @@ def banner_figure(seed: int = 7, cycle: float = 9.0, start: float = 2.6) -> str:
     body.append(f'<text class="tagline fade" style="animation-delay: 2.0s" x="{left}" y="238">in transformer language models</text>')
     body.append(f'<text class="pipeline fade" style="animation-delay: 2.2s" x="{left}" y="282">extract → analyze → search → edit → eval → export</text>')
 
-    style = STYLE.format(light=_vars({**LIGHT, "s4": LIGHT["ink2"]}), dark=_vars({**DARK, "s4": DARK["ink2"]}), font=FONT)
+    light, dark = {**LIGHT, "s4": LIGHT["ink2"]}, {**DARK, "s4": DARK["ink2"]}
+    style = STYLE.format(light=_vars(light) + " " + _shades(light, False), dark=_vars(dark) + " " + _shades(dark, True), font=FONT)
     style += BANNER_STYLE.format(cycle=cycle, start=start)
     description = (
-        "Vectorlab banner: two clusters of activation points in a 3D space above a floor grid, the arrow r from the mean "
-        "of one class to the other, and an animation that removes each point's component along r so both classes land on "
-        "the plane perpendicular to r. The title Vectorlab is drawn with arrows."
+        "Vectorlab banner: two classes of activation points in a 3D residual-stream space with gridded walls, the arrow r "
+        "from the mean of one class to the other, and a loop showing the two edits: ablation moves every point onto the "
+        "plane perpendicular to r, and steering moves the negative class along r. The title Vectorlab is drawn with arrows."
     )
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img">'
